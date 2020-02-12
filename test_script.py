@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 import sklearn
+from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.datasets import make_classification
 from sklearn.pipeline import Pipeline
@@ -17,8 +18,13 @@ from sklearn.decomposition import PCA
 from methods_functions import *
 
 check_missing_val(genedata)
-#initial_rank(genedata, gleasonscores)
+
 plotimportances(initial_rank(genedata, gleasonscores), 40, "Initial")
+
+
+#split data into test and training data
+gene_train, gene_test, gleason_train, gleason_test = train_test_split(genedata, gleasonscores, test_size=0.25)
+
 
 genedata, gleasonscores, mergedset = variance_filter(genedata, gleasonscores)
 genedata, gleasonscores, mergedset = univariate_filter(genedata, gleasonscores)
