@@ -1,5 +1,11 @@
 # RNAseq_ML
 
+## Next step is to use the sklearn pipeline functions
+
+Manual methods script for initial investigation of a few methods, sklearn submodule pipeline has wider functionality.
+
+### Preliminary data generated from manual methods script
+
 Draft scripts for discovering best methods for feature selection with RNAseq data (using sklearn package). 
 To run:  
 `$ python3 test_script.py`
@@ -21,12 +27,6 @@ Best result (var, uni, cor, rec, sel, pca):
 * Accuracy:       0.76 (+/- 0.08) 
 * RFC Scores:     [0.68181818 0.80952381 0.76190476 0.85714286 0.80952381] 
 * Accuracy:       0.78 (+/- 0.12) 
-
-
-## Next step is to use the sklearn pipeline functions
-
-
-
 
 Feature LR and RFC scores are visualised at the end:
 ![cross validation scores](/figs/cross_val_graph.png)
