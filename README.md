@@ -1,7 +1,7 @@
 # RNAseq_ML
 
 Draft scripts for discovering best methods for feature selection with RNAseq data (using sklearn package). 
-To run: `bash python3 test_script.py`
+To run: `$ python3 test_script.py`
 
 Mehods include:
 * Removing low variance
@@ -20,3 +20,6 @@ Best result (var, uni, cor, rec, sel, pca):
 * Accuracy: 0.76 (+/- 0.08) 
 * RFC Scores:   [0.68181818 0.80952381 0.76190476 0.85714286 0.80952381] 
 * Accuracy: 0.78 (+/- 0.12) 
+
+
+Feature LR and RFC scores are visualised at the end:
