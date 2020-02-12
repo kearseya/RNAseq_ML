@@ -1,5 +1,11 @@
 # RNAseq_ML
 
+Investigating methods to undertake feature selection and reduction on RNA-seq data.  
+
+Data from:
+https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE54460
+
+
 ## Next step is to use the sklearn pipeline functions
 
 Manual methods script for initial investigation of a few methods, sklearn submodule pipeline has wider functionality.
@@ -18,9 +24,6 @@ Mehods include:
 * Feature selection from model
 * PCA filter
 
-
-Data from:
-https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE54460
 
 Best result (var, uni, cor, rec, sel, pca): 
 * LR  Scores:     [0.68181818 0.76190476 0.76190476 0.80952381 0.76190476] 
