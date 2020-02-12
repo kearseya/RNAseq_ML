@@ -24,4 +24,4 @@ Best result (var, uni, cor, rec, sel, pca):
 
 
 Feature LR and RFC scores are visualised at the end:
-![cross validation scores][/figs/cross_val_graph.png]
+![cross validation scores](/figs/cross_val_graph.png)
