@@ -85,7 +85,7 @@ for i, (label, reducer_scores) in enumerate(zip(reducer_labels, mean_scores)):
 plt.title("Comparing feature reduction techniques")
 plt.xlabel('Reduced number of features')
 plt.xticks(bar_offsets + len(reducer_labels) / 2, N_FEATURES_OPTIONS)
-plt.ylabel('Digit classification accuracy')
+plt.ylabel('Gleason classification accuracy')
 plt.ylim((0, 1))
 plt.legend(loc='upper left')
 plt.show()
