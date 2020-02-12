@@ -8,8 +8,11 @@ import sklearn
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.datasets import make_classification
 from sklearn import feature_selection
+from sklearn.feature_selection import SelectFromModel
 from sklearn.model_selection import cross_val_score
 from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import ExtraTreesClassifier
+from sklearn.svm import LinearSVC
 import sklearn.neural_network
 from sklearn.decomposition import PCA
 
@@ -168,7 +171,7 @@ def univariate_filter(genedata, gleasonscores):
     print("Removed: ", str(before_num_genes-genedata.shape[1]))
 
     global methodlog
-    methodlog.append({"method": method, "size": genedata.shape[1], "lr_scores": lr_scores, "rfc_scores": rfc_scores, "lr_acc": lr_scores.mean(), "rfc_acc": rfc_scores.mean(), "lr_err": lr_scores.std()*2, "rfc_err": rfc_scores.std()*2})
+    methodlog.append({"method": method, "size": genedata.shape[1], "removed": before_num_genes-genedata.shape[1], "lr_scores": lr_scores, "rfc_scores": rfc_scores, "lr_acc": lr_scores.mean(), "rfc_acc": rfc_scores.mean(), "lr_err": lr_scores.std()*2, "rfc_err": rfc_scores.std()*2})
 
     #remake merged dataset
     mergedset = pd.merge(genedata, gleasonscores, left_index=True, right_index=True)
@@ -258,8 +261,8 @@ def recursive_feature_elimination(genedata, gleasonscores):
     print("After:   ", str(genedata.shape[1]), str(np.bool(genedata.shape[1]==RFE_features.shape[1])))
     print("Removed: ", str(before_num_genes-genedata.shape[1]))
 
-    global methodlog
-    methodlog.append({"method": method, "size": genedata.shape[1], "lr_scores": lr_scores, "rfc_scores": rfc_scores, "lr_acc": lr_scores.mean(), "rfc_acc": rfc_scores.mean(), "lr_err": lr_scores.std()*2, "rfc_err": rfc_scores.std()*2})
+    global methodlogp
+    methodlog.append({"method": method, "size": genedata.shape[1], "removed": before_num_genes-genedata.shape[1], "lr_scores": lr_scores, "rfc_scores": rfc_scores, "lr_acc": lr_scores.mean(), "rfc_acc": rfc_scores.mean(), "lr_err": lr_scores.std()*2, "rfc_err": rfc_scores.std()*2})
 
     #remake merged dataset
     mergedset = pd.merge(genedata, gleasonscores, left_index=True, right_index=True)
@@ -297,8 +300,22 @@ def feature_select_from_model(genedata, gleasonscores):
     print("RFC Scores:  ", rfc_scores)
     print("Accuracy: %0.2f (+/- %0.2f)" % (rfc_scores.mean(), rfc_scores.std() * 2))
 
+    gene_names = list(genedata.columns.values)
+    before_num_genes = genedata.shape[1]
+    passed_sel_filter = select_model.get_support()
+    print("Before:  ", str(before_num_genes))
+    sel_filter_genes = []
+    for bool, gene in zip(passed_sel_filter, gene_names):
+        if bool:
+            sel_filter_genes.append(gene)
+
+    genedata = pd.DataFrame(model_features, columns=sel_filter_genes)
+    genedata = genedata.set_index(row_names)
+    print("After:   ", str(genedata.shape[1]), str(np.bool(genedata.shape[1]==model_features.shape[1])))
+    print("Removed: ", str(before_num_genes-genedata.shape[1]))
+
     global methodlog
-    methodlog.append({"method": method, "size": genedata.shape[1], "lr_scores": lr_scores, "rfc_scores": rfc_scores, "lr_acc": lr_scores.mean(), "rfc_acc": rfc_scores.mean(), "lr_err": lr_scores.std()*2, "rfc_err": rfc_scores.std()*2})
+    methodlog.append({"method": method, "size": genedata.shape[1], "removed": before_num_genes-genedata.shape[1], "lr_scores": lr_scores, "rfc_scores": rfc_scores, "lr_acc": lr_scores.mean(), "rfc_acc": rfc_scores.mean(), "lr_err": lr_scores.std()*2, "rfc_err": rfc_scores.std()*2})
 
     #remake merged dataset
     mergedset = pd.merge(genedata, gleasonscores, left_index=True, right_index=True)
@@ -310,19 +327,125 @@ def feature_select_from_model(genedata, gleasonscores):
 
 
 
-def PCA_filter(genedata, gleasonscores):
+def tree_based_selection(genedata, gleasonscores):
     print("\n=====================================================\n")
-    method = "PCA filter"
+    method = "Tree based selection"
+    #tree based selection
+    print(method)
+    etc = ExtraTreesClassifier(n_estimators=50)
+    print("Fitting")
+    etc = etc.fit(genedata, gleasonscores['Gleason'])
+    etc_model = SelectFromModel(etc, prefit=True)
+    etc_importances = etc.feature_importances_
+    plotimportances(etc_importances, len(etc_importances), method)
+    print("Transforming")
+    etc_features = etc_model.transform(genedata)
+
+    lr = LogisticRegression(solver='liblinear', multi_class='auto')
+    rfc = RandomForestClassifier(n_estimators=500)
+
+    print("Cross validating")
+    lr_scores = cross_val_score(lr, etc_features, gleasonscores['Gleason'], cv=5)
+    rfc_scores = cross_val_score(rfc, etc_features, gleasonscores['Gleason'], cv=5)
+
+    print("LR  Scores:   ", lr_scores)
+    print("Accuracy: %0.2f (+/- %0.2f)" % (lr_scores.mean(), lr_scores.std() * 2))
+    print("RFC Scores:  ", rfc_scores)
+    print("Accuracy: %0.2f (+/- %0.2f)" % (rfc_scores.mean(), rfc_scores.std() * 2))
+
+    gene_names = list(genedata.columns.values)
+    before_num_genes = genedata.shape[1]
+    passed_etc_filter = etc_model.get_support()
+    print("Before:  ", str(before_num_genes))
+    etc_filter_genes = []
+    for bool, gene in zip(passed_etc_filter, gene_names):
+        if bool:
+            etc_filter_genes.append(gene)
+
+    genedata = pd.DataFrame(etc_features, columns=etc_filter_genes)
+    genedata = genedata.set_index(row_names)
+    print("After:   ", str(genedata.shape[1]), str(np.bool(genedata.shape[1]==etc_features.shape[1])))
+    print("Removed: ", str(before_num_genes-genedata.shape[1]))
+
+    global methodlog
+    methodlog.append({"method": method, "size": genedata.shape[1], "removed": before_num_genes-genedata.shape[1], "lr_scores": lr_scores, "rfc_scores": rfc_scores, "lr_acc": lr_scores.mean(), "rfc_acc": rfc_scores.mean(), "lr_err": lr_scores.std()*2, "rfc_err": rfc_scores.std()*2})
+
+    #remake merged dataset
+    mergedset = pd.merge(genedata, gleasonscores, left_index=True, right_index=True)
+
+    print("\n=====================================================\n")
+    return genedata, gleasonscores, mergedset
+
+#genedata, gleasonscores, mergedset = tree_based_selection(genedata, gleasonscores, mergedset)
+
+
+def L1_based_select(genedata, gleasonscores):
+    print("\n=====================================================\n")
+    method = "L1-based selection"
+    print(method)
+    #lr = LogisticRegression(solver='liblinear', multi_class='auto', max_iter=5000)
+    print("Fitting")
+    lsvc = LinearSVC(C=0.01, penalty="l1", dual=False).fit(genedata, gleasonscores['Gleason'])
+    L1_model = SelectFromModel(lsvc, prefit=True)
+    #L1_importances = lsvc.feature_importances_ #not supported with current method
+    #plotimportances(L1_importances, len(L1_importances), method)
+    print("Transforming")
+    model_features = L1_model.transform(genedata)
+
+    lr = LogisticRegression(solver='liblinear', multi_class='auto')
+    rfc = RandomForestClassifier(n_estimators=500)
+
+    print("Cross validating")
+    lr_scores = cross_val_score(lr, model_features, gleasonscores['Gleason'], cv=5)
+    rfc_scores = cross_val_score(rfc, model_features, gleasonscores['Gleason'], cv=5)
+
+    print("LR  Scores:   ", lr_scores)
+    print("Accuracy: %0.2f (+/- %0.2f)" % (lr_scores.mean(), lr_scores.std() * 2))
+    print("RFC Scores:  ", rfc_scores)
+    print("Accuracy: %0.2f (+/- %0.2f)" % (rfc_scores.mean(), rfc_scores.std() * 2))
+
+    gene_names = list(genedata.columns.values)
+    before_num_genes = genedata.shape[1]
+    passed_L1_filter = L1_model.get_support()
+    print("Before:  ", str(before_num_genes))
+    L1_filter_genes = []
+    for bool, gene in zip(passed_L1_filter, gene_names):
+        if bool:
+            L1_filter_genes.append(gene)
+
+    genedata = pd.DataFrame(model_features, columns=L1_filter_genes)
+    genedata = genedata.set_index(row_names)
+    print("After:   ", str(genedata.shape[1]), str(np.bool(genedata.shape[1]==model_features.shape[1])))
+    print("Removed: ", str(before_num_genes-genedata.shape[1]))
+
+    global methodlog
+    methodlog.append({"method": method, "size": genedata.shape[1], "removed": before_num_genes-genedata.shape[1], "lr_scores": lr_scores, "rfc_scores": rfc_scores, "lr_acc": lr_scores.mean(), "rfc_acc": rfc_scores.mean(), "lr_err": lr_scores.std()*2, "rfc_err": rfc_scores.std()*2})
+
+    #remake merged dataset
+    mergedset = pd.merge(genedata, gleasonscores, left_index=True, right_index=True)
+
+    print("\n=====================================================\n")
+    return genedata, gleasonscores, mergedset
+
+#genedata, gleasonscores, mergedset = L1_based_select(genedata, gleasonscores)
+
+
+
+def PCA_analysis(genedata, gleasonscores):
+    print("\n=====================================================\n")
+    method = "PCA analysis"
     # pca - keep 90% of variance
-    print("Prinipal components filter")
-    pca = PCA(0.90)
+    print("Prinipal component analysis")
+    pca = PCA(0.95, n_components=3, svd_solver='full')
 
     print("Fitting and Transforming")
     principal_components = pca.fit_transform(genedata)
     principal_df = pd.DataFrame(data = principal_components)
-    principal_df.shape
+    print(principal_df.shape)
+    print(pca.explained_variance_ratio_)
+    print(pca.singular_values_)
 
-    lr = LogisticRegression(solver='liblinear')
+    lr = LogisticRegression(solver='liblinear', multi_class='auto')
     rfc = RandomForestClassifier(n_estimators=100)
 
     print("Cross validating")
@@ -338,12 +461,13 @@ def PCA_filter(genedata, gleasonscores):
     methodlog.append({"method": method, "size": genedata.shape[1], "lr_scores": lr_scores, "rfc_scores": rfc_scores, "lr_acc": lr_scores.mean(), "rfc_acc": rfc_scores.mean(), "lr_err": lr_scores.std()*2, "rfc_err": rfc_scores.std()*2})
 
     #remake merged dataset
-    mergedset = pd.merge(genedata, gleasonscores, left_index=True, right_index=True)
+    #mergedset = pd.merge(genedata, gleasonscores, left_index=True, right_index=True)
 
     print("\n=====================================================\n")
-    return genedata, gleasonscores, mergedset
+    #return genedata, gleasonscores, mergedset
 
-#genedata, gleasonscores, mergedset = PCA_filter(genedata, gleasonscores)
+#PCA_analysis(genedata, gleasonscores)
+
 
 
 
@@ -417,4 +541,32 @@ print(univariate_features.shape)
 #DOESN'T WORK
 #PCA_importances = pca.fit(principal_components, gleasonscores['Gleason']).feature_importances_
 #plotimportances(PCA_importances, len(PCA_importances), method)
+
+    lr = LogisticRegression(solver='liblinear', multi_class='auto')
+    rfc = RandomForestClassifier(n_estimators=100)
+
+    print("Cross validating")
+    lr_scores = cross_val_score(lr, principal_df, gleasonscores['Gleason'], cv=5)
+    rfc_scores = cross_val_score(rfc, principal_df, gleasonscores['Gleason'], cv=5)
+
+    print("LR  Scores:   ", lr_scores)
+    print("Accuracy: %0.2f (+/- %0.2f)" % (lr_scores.mean(), lr_scores.std() * 2))
+    print("RFC Scores:  ", rfc_scores)
+    print("Accuracy: %0.2f (+/- %0.2f)" % (rfc_scores.mean(), rfc_scores.std() * 2))
+
+    gene_names = list(genedata.columns.values)
+    before_num_genes = genedata.shape[1]
+    passed_pca_filter = False
+    print("Before:  ", str(before_num_genes))
+    pca_filter_genes = []
+    for bool, gene in zip(passed_pca_filter, gene_names):
+        if bool:
+            pca_filter_genes.append(gene)
+    genedata = pd.DataFrame(principal_components, columns=pca_filter_genes)
+    genedata = genedata.set_index(row_names)
+    print("After:   ", str(genedata.shape[1]), str(np.bool(genedata.shape[1]==principal_components.shape[1])))
+    print("Removed: ", str(before_num_genes-genedata.shape[1]))
+
+    global methodlog
+    methodlog.append({"method": method, "size": genedata.shape[1], "removed": before_num_genes-genedata.shape[1], "lr_scores": lr_scores, "rfc_scores": rfc_scores, "lr_acc": lr_scores.mean(), "rfc_acc": rfc_scores.mean(), "lr_err": lr_scores.std()*2, "rfc_err": rfc_scores.std()*2})
 """
