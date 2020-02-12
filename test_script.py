@@ -7,6 +7,7 @@ import seaborn as sns
 import sklearn
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.datasets import make_classification
+from sklearn.pipeline import Pipeline
 from sklearn import feature_selection
 from sklearn.model_selection import cross_val_score
 from sklearn.linear_model import LogisticRegression
@@ -28,8 +29,5 @@ genedata, gleasonscores, mergedset = PCA_filter(genedata, gleasonscores)
 
 print("Method Log")
 print(methodlog)
-
-
-
 
 visualise_accuracy_methodlog()

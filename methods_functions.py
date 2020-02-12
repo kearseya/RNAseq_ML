@@ -273,7 +273,7 @@ def recursive_feature_elimination(genedata, gleasonscores):
 
 def feature_select_from_model(genedata, gleasonscores):
     print("\n=====================================================\n")
-    method = "Feature select from model"
+    method = "Feature select \nfrom model"
     lr = LogisticRegression(solver='liblinear', multi_class='auto', max_iter=5000)
     #feature selection from model
     #feature extraction
@@ -281,10 +281,10 @@ def feature_select_from_model(genedata, gleasonscores):
     select_model = feature_selection.SelectFromModel(lr)
     #fit on train set
     print("Fitting")
-    fit = select_model.fit(genedata, gleasonscores['Gleason'])
+    sel_fit = select_model.fit(genedata, gleasonscores['Gleason'])
     #transform train set
     print("Transforming")
-    model_features = fit.transform(genedata)
+    model_features = sel_fit.transform(genedata)
 
     lr = LogisticRegression(solver='liblinear', multi_class='auto')
     rfc = RandomForestClassifier(n_estimators=500)
@@ -410,6 +410,11 @@ print(univariate_features.shape)
 #print("Transforming")
 #recursive_features = RFE_features.transform(mergedset)
 
+#DOESN'T WORK
+#mod_sel_importances = sel_fit.feature_importances_
+#plotimportances(mod_sel_importances, len(mod_sel_importances), method)
 
-
+#DOESN'T WORK
+#PCA_importances = pca.fit(principal_components, gleasonscores['Gleason']).feature_importances_
+#plotimportances(PCA_importances, len(PCA_importances), method)
 """
