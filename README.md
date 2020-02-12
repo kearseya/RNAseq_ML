@@ -22,7 +22,10 @@ Mehods include:
 * Correlation filter
 * Recursive feature elimination
 * Feature selection from model
-* PCA filter
+* Tree based selection
+* L1-based selection
+
+Also PCA analysis
 
 
 Best result (var, uni, cor, rec, sel, pca): 
