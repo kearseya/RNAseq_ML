@@ -13,6 +13,7 @@ from sklearn.linear_model import LogisticRegression
 import sklearn.neural_network
 from sklearn.decomposition import PCA
 
+
 #read in the data
 data_file_name = "GSE54460_FPKM-genes-TopHat2-106samples-12-4-13.txt"
 
@@ -36,11 +37,8 @@ gleasonscores = gleasonscores.apply(pd.to_numeric, errors='coerce').fillna(0.000
 #create a combined matrix of genes and gleason scores
 mergedset = pd.merge(genedata, gleasonscores, left_index=True, right_index=True)
 
-
-#check for missing values
-print("Checking for missing data: ")
-print(genedata.isnull().any().any())
-#FALSE so there are no missing values
+#create score log
+methodlog = []
 
 #make a copy of original gene data
 ogenedata = genedata.copy()
@@ -50,14 +48,23 @@ row_names = rawdata.columns.values[1:]
 all_gene_names = list(genedata.columns.values)
 
 
-#create RFC and fit the data to it
-rfc = RandomForestClassifier(n_estimators=100)
-print("Fitting model to random forest classifier")
-rfc1 = rfc.fit(genedata, gleasonscores['Gleason'])
+def check_missing_val(genedata):
+    #check for missing values
+    print("Checking for missing data: ")
+    print(genedata.isnull().any().any())
+    #FALSE so there are no missing values
 
-#rank the importance of the features
-print("Ranking features")
-initial_feature_importance = rfc1.feature_importances_
+
+def initial_rank(genedata, gleasonscores):
+    #create RFC and fit the data to it
+    rfc = RandomForestClassifier(n_estimators=100)
+    print("Fitting model to random forest classifier")
+    rfc1 = rfc.fit(genedata, gleasonscores['Gleason'])
+
+    #rank the importance of the features
+    print("Ranking features")
+    initial_feature_importance = rfc1.feature_importances_
+    return initial_feature_importance
 
 
 #produce graph showing the relatvie importance of the top features
@@ -75,7 +82,7 @@ def plotimportances(fitdata, num_features, method):
     sns.despine(left=True, bottom=True)
     plt.show()
 
-plotimportances(initial_feature_importance, 40, "Initial")
+#plotimportances(initial_feature_importance, 40, "Initial")
 
 
 
@@ -100,13 +107,16 @@ def variance_filter(genedata, gleasonscores):
     print("After:   ", str(genedata.shape[1]), str(np.bool(genedata.shape[1]==train_variance.shape[1])))
     print("Removed: ", str(before_num_genes-genedata.shape[1]))
 
+    global methodlog
+    methodlog.append({"method": method, "size": genedata.shape[1]})
+
     #remake merged dataset
     mergedset = pd.merge(genedata, gleasonscores, left_index=True, right_index=True)
 
     print("\n=====================================================\n")
     return genedata, gleasonscores, mergedset
 
-genedata, gleasonscores, mergedset = variance_filter(genedata, gleasonscores)
+#genedata, gleasonscores, mergedset = variance_filter(genedata, gleasonscores)
 
 
 
@@ -157,13 +167,16 @@ def univariate_filter(genedata, gleasonscores):
     print("After:   ", str(genedata.shape[1]), str(np.bool(genedata.shape[1]==univariate_features.shape[1])))
     print("Removed: ", str(before_num_genes-genedata.shape[1]))
 
+    global methodlog
+    methodlog.append({"method": method, "size": genedata.shape[1], "lr_scores": lr_scores, "rfc_scores": rfc_scores, "lr_acc": lr_scores.mean(), "rfc_acc": rfc_scores.mean(), "lr_err": lr_scores.std()*2, "rfc_err": rfc_scores.std()*2})
+
     #remake merged dataset
     mergedset = pd.merge(genedata, gleasonscores, left_index=True, right_index=True)
 
     print("\n=====================================================\n")
     return genedata, gleasonscores, mergedset
 
-genedata, gleasonscores, mergedset = univariate_filter(genedata, gleasonscores)
+#genedata, gleasonscores, mergedset = univariate_filter(genedata, gleasonscores)
 
 
 
@@ -189,13 +202,16 @@ def correlation_filter(genedata, gleasonscores, mergedset):
     print("After:   ", str(genedata.shape[1]))
     print("Removed: ", str(len(to_drop)))
 
+    global methodlog
+    methodlog.append({"method": method, "size": genedata.shape[1]})
+
     #remake merged dataset
     mergedset = pd.merge(genedata, gleasonscores, left_index=True, right_index=True)
 
     print("\n=====================================================\n")
     return genedata, gleasonscores, mergedset
 
-genedata, gleasonscores, mergedset = correlation_filter(genedata, gleasonscores, mergedset)
+#genedata, gleasonscores, mergedset = correlation_filter(genedata, gleasonscores, mergedset)
 
 
 
@@ -242,13 +258,16 @@ def recursive_feature_elimination(genedata, gleasonscores):
     print("After:   ", str(genedata.shape[1]), str(np.bool(genedata.shape[1]==RFE_features.shape[1])))
     print("Removed: ", str(before_num_genes-genedata.shape[1]))
 
+    global methodlog
+    methodlog.append({"method": method, "size": genedata.shape[1], "lr_scores": lr_scores, "rfc_scores": rfc_scores, "lr_acc": lr_scores.mean(), "rfc_acc": rfc_scores.mean(), "lr_err": lr_scores.std()*2, "rfc_err": rfc_scores.std()*2})
+
     #remake merged dataset
     mergedset = pd.merge(genedata, gleasonscores, left_index=True, right_index=True)
 
     print("\n=====================================================\n")
     return genedata, gleasonscores, mergedset
 
-genedata, gleasonscores, mergedset = recursive_feature_elimination(genedata, gleasonscores)
+#genedata, gleasonscores, mergedset = recursive_feature_elimination(genedata, gleasonscores)
 
 
 
@@ -278,13 +297,16 @@ def feature_select_from_model(genedata, gleasonscores):
     print("RFC Scores:  ", rfc_scores)
     print("Accuracy: %0.2f (+/- %0.2f)" % (rfc_scores.mean(), rfc_scores.std() * 2))
 
+    global methodlog
+    methodlog.append({"method": method, "size": genedata.shape[1], "lr_scores": lr_scores, "rfc_scores": rfc_scores, "lr_acc": lr_scores.mean(), "rfc_acc": rfc_scores.mean(), "lr_err": lr_scores.std()*2, "rfc_err": rfc_scores.std()*2})
+
     #remake merged dataset
     mergedset = pd.merge(genedata, gleasonscores, left_index=True, right_index=True)
 
     print("\n=====================================================\n")
     return genedata, gleasonscores, mergedset
 
-genedata, gleasonscores, mergedset = feature_select_from_model(genedata, gleasonscores)
+#genedata, gleasonscores, mergedset = feature_select_from_model(genedata, gleasonscores)
 
 
 
@@ -312,19 +334,58 @@ def PCA_filter(genedata, gleasonscores):
     print("RFC Scores:  ", rfc_scores)
     print("Accuracy: %0.2f (+/- %0.2f)" % (rfc_scores.mean(), rfc_scores.std() * 2))
 
+    global methodlog
+    methodlog.append({"method": method, "size": genedata.shape[1], "lr_scores": lr_scores, "rfc_scores": rfc_scores, "lr_acc": lr_scores.mean(), "rfc_acc": rfc_scores.mean(), "lr_err": lr_scores.std()*2, "rfc_err": rfc_scores.std()*2})
+
     #remake merged dataset
     mergedset = pd.merge(genedata, gleasonscores, left_index=True, right_index=True)
 
     print("\n=====================================================\n")
     return genedata, gleasonscores, mergedset
 
-genedata, gleasonscores, mergedset = PCA_filter(genedata, gleasonscores)
+#genedata, gleasonscores, mergedset = PCA_filter(genedata, gleasonscores)
 
 
 
+#print(methodlog)
 
 
+def visualise_accuracy_methodlog():
+    methodorder = []
+    size = []
+    lr_accuracy = []
+    rfc_accuracy = []
+    lr_error = []
+    rfc_error = []
+    for i in range(len(methodlog)):
+        methodorder.append(methodlog[i]['method'])
+        size.append(methodlog[i]['size'])
+        try:
+            lr_accuracy.append(methodlog[i]['lr_acc'])
+            rfc_accuracy.append(methodlog[i]['rfc_acc'])
+            lr_error.append(methodlog[i]['lr_err'])
+            rfc_error.append(methodlog[i]['rfc_err'])
+        except:
+            lr_accuracy.append(0.0)
+            rfc_accuracy.append(0.0)
+            lr_error.append(0.0)
+            rfc_error.append(0.0)
 
+    ind = np.arange(len(methodlog))
+    width = 0.35
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    rects1 = ax.bar(ind, tuple(lr_accuracy), width, color='royalblue', yerr=tuple(lr_error))
+    rects2 = ax.bar(ind+width, tuple(rfc_accuracy), width, color='seagreen', yerr=tuple(rfc_error))
+    # add some
+    ax.set_ylabel('Accuracy')
+    ax.set_title('Scores for LR and RFC')
+    ax.set_xticks(ind + width / 2)
+    ax.set_xticklabels(tuple(methodorder))
+
+    ax.legend( (rects1[0], rects2[0]), ('Logistic Regression', 'Random Forest Classifier') )
+
+    plt.show()
 
 
 
