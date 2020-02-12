@@ -1,6 +1,6 @@
 # RNAseq_ML
 
-Draft script for discovering best methods for feature selection with RNAseq data (using sklearn package)
+Draft script for discovering best methods for feature selection with RNAseq data (using sklearn package).
 
 Mehods include:
 * Removing low variance
