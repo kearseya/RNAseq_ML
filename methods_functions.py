@@ -61,7 +61,7 @@ initial_feature_importance = rfc1.feature_importances_
 
 
 #produce graph showing the relatvie importance of the top features
-def plotimportances(fitdata, num_features):
+def plotimportances(fitdata, num_features, method):
     feature_importance = fitdata
     feature_importance = 100.0 * (feature_importance / feature_importance.max())
     sorted_idx = np.argsort(feature_importance)
@@ -70,18 +70,18 @@ def plotimportances(fitdata, num_features):
     plt.barh(pos, feature_importance[sorted_idx], align='center')
     plt.yticks(pos, genedata.columns[sorted_idx])
     plt.xlabel('Relative Importance')
-    plt.title('Feature Importance', fontsize=30)
+    plt.title('Feature Importance: '+method, fontsize=30)
     plt.tick_params(axis='x', which='major', labelsize=15)
     sns.despine(left=True, bottom=True)
     plt.show()
 
-plotimportances(initial_feature_importance, 40)
+plotimportances(initial_feature_importance, 40, "Initial")
 
 
 
 def variance_filter(genedata, gleasonscores):
     print("\n=====================================================\n")
-
+    method = "Variance filter"
     #remove features with low variance
     print("Removing features with low variance")
     sel = feature_selection.VarianceThreshold()
@@ -113,7 +113,7 @@ genedata, gleasonscores, mergedset = variance_filter(genedata, gleasonscores)
 
 def univariate_filter(genedata, gleasonscores):
     print("\n=====================================================\n")
-
+    method = "Univariate filter"
     #univariate feature selection
     #stats tests to select features with highest correlation to target
     print("Univariate feature selection")
@@ -141,7 +141,7 @@ def univariate_filter(genedata, gleasonscores):
     k_feature_importance = rfc.fit(univariate_features, gleasonscores['Gleason']).feature_importances_
 
     print("Plotting univariate features ")
-    plotimportances(k_feature_importance, 50)
+    plotimportances(k_feature_importance, 50, method)
 
     gene_names = list(genedata.columns.values)
     before_num_genes = genedata.shape[1]
@@ -169,7 +169,7 @@ genedata, gleasonscores, mergedset = univariate_filter(genedata, gleasonscores)
 
 def correlation_filter(genedata, gleasonscores, mergedset):
     print("\n=====================================================\n")
-
+    method = "Correlation filter"
     #remove highly correlated features
     #this prevents overfitting (due to highly correlated or colinear features)
     print("Calculating correlation matrix (this may take some time)")
@@ -201,7 +201,7 @@ genedata, gleasonscores, mergedset = correlation_filter(genedata, gleasonscores,
 
 def recursive_feature_elimination(genedata, gleasonscores):
     print("\n=====================================================\n")
-
+    method = "Recursive feature elimination"
     #recursive feature elimination
     print("Recursive feature elimination")
     lr = LogisticRegression(solver='liblinear', multi_class='auto', max_iter=5000) #max_iter specified as does not converge at 1000 (default)
@@ -226,7 +226,7 @@ def recursive_feature_elimination(genedata, gleasonscores):
     print("Accuracy: %0.2f (+/- %0.2f)" % (rfc_scores.mean(), rfc_scores.std() * 2))
 
     rfe_importances = rfc.fit(RFE_features, gleasonscores['Gleason']).feature_importances_
-    plotimportances(rfe_importances, len(rfe_importances))
+    plotimportances(rfe_importances, len(rfe_importances), method)
 
     gene_names = list(genedata.columns.values)
     before_num_genes = genedata.shape[1]
@@ -254,7 +254,7 @@ genedata, gleasonscores, mergedset = recursive_feature_elimination(genedata, gle
 
 def feature_select_from_model(genedata, gleasonscores):
     print("\n=====================================================\n")
-
+    method = "Feature select from model"
     lr = LogisticRegression(solver='liblinear', multi_class='auto', max_iter=5000)
     #feature selection from model
     #feature extraction
@@ -290,7 +290,7 @@ genedata, gleasonscores, mergedset = feature_select_from_model(genedata, gleason
 
 def PCA_filter(genedata, gleasonscores):
     print("\n=====================================================\n")
-
+    method = "PCA filter"
     # pca - keep 90% of variance
     print("Prinipal components filter")
     pca = PCA(0.90)
