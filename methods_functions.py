@@ -4,6 +4,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+import time
+
 import sklearn
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.datasets import make_classification
@@ -94,7 +96,9 @@ def variance_filter(genedata, gleasonscores):
     method = "Variance filter"
     #remove features with low variance
     print("Removing features with low variance")
+    t1 = time.time()
     sel = feature_selection.VarianceThreshold()
+    print("Fitting and Transforming")
     train_variance = sel.fit_transform(genedata)
     passed_var_filter = sel.get_support()
     before_num_genes = genedata.shape[1]
@@ -111,7 +115,7 @@ def variance_filter(genedata, gleasonscores):
     print("Removed: ", str(before_num_genes-genedata.shape[1]))
 
     global methodlog
-    methodlog.append({"method": method, "size": genedata.shape[1]})
+    methodlog.append({"method": method, "size": genedata.shape[1], "removed": before_num_genes-genedata.shape[1], "time-taken": time.time()-t1})
 
     #remake merged dataset
     mergedset = pd.merge(genedata, gleasonscores, left_index=True, right_index=True)
@@ -132,13 +136,14 @@ def univariate_filter(genedata, gleasonscores):
     print("Univariate feature selection")
     #feature extraction
     print("Feature selection")
+    t1 = time.time()
     k_best = feature_selection.SelectKBest(score_func=feature_selection.f_regression, k=500)
     #fit on training data and transform
     print("Fitting and Transforming")
     univariate_features = k_best.fit_transform(genedata, gleasonscores['Gleason'])
 
     lr = LogisticRegression(solver='lbfgs', multi_class='auto', max_iter=5000)
-    rfc = RandomForestClassifier(n_estimators=2500)
+    rfc = RandomForestClassifier(n_estimators=500)
 
     print("Cross validating")
     lr_scores = cross_val_score(lr, univariate_features, gleasonscores['Gleason'], cv=5, verbose=True)
@@ -171,7 +176,7 @@ def univariate_filter(genedata, gleasonscores):
     print("Removed: ", str(before_num_genes-genedata.shape[1]))
 
     global methodlog
-    methodlog.append({"method": method, "size": genedata.shape[1], "removed": before_num_genes-genedata.shape[1], "lr_scores": lr_scores, "rfc_scores": rfc_scores, "lr_acc": lr_scores.mean(), "rfc_acc": rfc_scores.mean(), "lr_err": lr_scores.std()*2, "rfc_err": rfc_scores.std()*2})
+    methodlog.append({"method": method, "size": genedata.shape[1], "removed": before_num_genes-genedata.shape[1], "lr_scores": lr_scores, "rfc_scores": rfc_scores, "lr_acc": lr_scores.mean(), "rfc_acc": rfc_scores.mean(), "lr_err": lr_scores.std()*2, "rfc_err": rfc_scores.std()*2, "time-taken": time.time()-t1})
 
     #remake merged dataset
     mergedset = pd.merge(genedata, gleasonscores, left_index=True, right_index=True)
@@ -188,7 +193,8 @@ def correlation_filter(genedata, gleasonscores, mergedset):
     method = "Correlation filter"
     #remove highly correlated features
     #this prevents overfitting (due to highly correlated or colinear features)
-    print("Calculating correlation matrix (this may take some time)")
+    print("Calculating correlation matrix (this may take some time, can crash)")
+    t1 = time.time()
     corr_matrix = mergedset.corr().abs()
     print(corr_matrix['Gleason'].sort_values(ascending=False).head(10))
     #plot correlation matrix
@@ -206,7 +212,7 @@ def correlation_filter(genedata, gleasonscores, mergedset):
     print("Removed: ", str(len(to_drop)))
 
     global methodlog
-    methodlog.append({"method": method, "size": genedata.shape[1]})
+    methodlog.append({"method": method, "size": genedata.shape[1], "removed": len(to_drop), "time-taken": time.time()-t1})
 
     #remake merged dataset
     mergedset = pd.merge(genedata, gleasonscores, left_index=True, right_index=True)
@@ -223,6 +229,7 @@ def recursive_feature_elimination(genedata, gleasonscores):
     method = "Recursive feature elimination"
     #recursive feature elimination
     print("Recursive feature elimination")
+    t1 = time.time()
     lr = LogisticRegression(solver='liblinear', multi_class='auto', max_iter=5000) #max_iter specified as does not converge at 1000 (default)
 
     #feature extraction
@@ -262,7 +269,7 @@ def recursive_feature_elimination(genedata, gleasonscores):
     print("Removed: ", str(before_num_genes-genedata.shape[1]))
 
     global methodlogp
-    methodlog.append({"method": method, "size": genedata.shape[1], "removed": before_num_genes-genedata.shape[1], "lr_scores": lr_scores, "rfc_scores": rfc_scores, "lr_acc": lr_scores.mean(), "rfc_acc": rfc_scores.mean(), "lr_err": lr_scores.std()*2, "rfc_err": rfc_scores.std()*2})
+    methodlog.append({"method": method, "size": genedata.shape[1], "removed": before_num_genes-genedata.shape[1], "lr_scores": lr_scores, "rfc_scores": rfc_scores, "lr_acc": lr_scores.mean(), "rfc_acc": rfc_scores.mean(), "lr_err": lr_scores.std()*2, "rfc_err": rfc_scores.std()*2, "time-taken": time.time()-t1})
 
     #remake merged dataset
     mergedset = pd.merge(genedata, gleasonscores, left_index=True, right_index=True)
@@ -277,6 +284,7 @@ def recursive_feature_elimination(genedata, gleasonscores):
 def feature_select_from_model(genedata, gleasonscores):
     print("\n=====================================================\n")
     method = "Feature select \nfrom model"
+    t1 = time.time()
     lr = LogisticRegression(solver='liblinear', multi_class='auto', max_iter=5000)
     #feature selection from model
     #feature extraction
@@ -315,7 +323,7 @@ def feature_select_from_model(genedata, gleasonscores):
     print("Removed: ", str(before_num_genes-genedata.shape[1]))
 
     global methodlog
-    methodlog.append({"method": method, "size": genedata.shape[1], "removed": before_num_genes-genedata.shape[1], "lr_scores": lr_scores, "rfc_scores": rfc_scores, "lr_acc": lr_scores.mean(), "rfc_acc": rfc_scores.mean(), "lr_err": lr_scores.std()*2, "rfc_err": rfc_scores.std()*2})
+    methodlog.append({"method": method, "size": genedata.shape[1], "removed": before_num_genes-genedata.shape[1], "lr_scores": lr_scores, "rfc_scores": rfc_scores, "lr_acc": lr_scores.mean(), "rfc_acc": rfc_scores.mean(), "lr_err": lr_scores.std()*2, "rfc_err": rfc_scores.std()*2, "time-taken": time.time()-t1})
 
     #remake merged dataset
     mergedset = pd.merge(genedata, gleasonscores, left_index=True, right_index=True)
@@ -332,6 +340,7 @@ def tree_based_selection(genedata, gleasonscores):
     method = "Tree based selection"
     #tree based selection
     print(method)
+    t1 = time.time()
     etc = ExtraTreesClassifier(n_estimators=50)
     print("Fitting")
     etc = etc.fit(genedata, gleasonscores['Gleason'])
@@ -368,7 +377,7 @@ def tree_based_selection(genedata, gleasonscores):
     print("Removed: ", str(before_num_genes-genedata.shape[1]))
 
     global methodlog
-    methodlog.append({"method": method, "size": genedata.shape[1], "removed": before_num_genes-genedata.shape[1], "lr_scores": lr_scores, "rfc_scores": rfc_scores, "lr_acc": lr_scores.mean(), "rfc_acc": rfc_scores.mean(), "lr_err": lr_scores.std()*2, "rfc_err": rfc_scores.std()*2})
+    methodlog.append({"method": method, "size": genedata.shape[1], "removed": before_num_genes-genedata.shape[1], "lr_scores": lr_scores, "rfc_scores": rfc_scores, "lr_acc": lr_scores.mean(), "rfc_acc": rfc_scores.mean(), "lr_err": lr_scores.std()*2, "rfc_err": rfc_scores.std()*2, "time-taken": time.time()-t1})
 
     #remake merged dataset
     mergedset = pd.merge(genedata, gleasonscores, left_index=True, right_index=True)
@@ -385,6 +394,7 @@ def L1_based_select(genedata, gleasonscores):
     print(method)
     #lr = LogisticRegression(solver='liblinear', multi_class='auto', max_iter=5000)
     print("Fitting")
+    t1 = time.time()
     lsvc = LinearSVC(C=0.01, penalty="l1", dual=False).fit(genedata, gleasonscores['Gleason'])
     L1_model = SelectFromModel(lsvc, prefit=True)
     #L1_importances = lsvc.feature_importances_ #not supported with current method
@@ -419,7 +429,7 @@ def L1_based_select(genedata, gleasonscores):
     print("Removed: ", str(before_num_genes-genedata.shape[1]))
 
     global methodlog
-    methodlog.append({"method": method, "size": genedata.shape[1], "removed": before_num_genes-genedata.shape[1], "lr_scores": lr_scores, "rfc_scores": rfc_scores, "lr_acc": lr_scores.mean(), "rfc_acc": rfc_scores.mean(), "lr_err": lr_scores.std()*2, "rfc_err": rfc_scores.std()*2})
+    methodlog.append({"method": method, "size": genedata.shape[1], "removed": before_num_genes-genedata.shape[1], "lr_scores": lr_scores, "rfc_scores": rfc_scores, "lr_acc": lr_scores.mean(), "rfc_acc": rfc_scores.mean(), "lr_err": lr_scores.std()*2, "rfc_err": rfc_scores.std()*2, "time-taken": time.time()-t1})
 
     #remake merged dataset
     mergedset = pd.merge(genedata, gleasonscores, left_index=True, right_index=True)
@@ -436,6 +446,7 @@ def PCA_analysis(genedata, gleasonscores, n_comp):
     method = "PCA analysis"
     # pca - keep 90% of variance
     print("Prinipal component analysis")
+    t1 = time.time()
     pca = PCA(0.95, n_components=n_comp, svd_solver='full')
 
     print("Fitting and Transforming")
@@ -458,7 +469,7 @@ def PCA_analysis(genedata, gleasonscores, n_comp):
     print("Accuracy: %0.2f (+/- %0.2f)" % (rfc_scores.mean(), rfc_scores.std() * 2))
 
     global methodlog
-    methodlog.append({"method": method, "size": genedata.shape[1], "lr_scores": lr_scores, "rfc_scores": rfc_scores, "lr_acc": lr_scores.mean(), "rfc_acc": rfc_scores.mean(), "lr_err": lr_scores.std()*2, "rfc_err": rfc_scores.std()*2})
+    methodlog.append({"method": method, "size": genedata.shape[1], "lr_scores": lr_scores, "rfc_scores": rfc_scores, "lr_acc": lr_scores.mean(), "rfc_acc": rfc_scores.mean(), "lr_err": lr_scores.std()*2, "rfc_err": rfc_scores.std()*2, "time-taken": time.time()-t1})
 
     #remake merged dataset
     #mergedset = pd.merge(genedata, gleasonscores, left_index=True, right_index=True)
