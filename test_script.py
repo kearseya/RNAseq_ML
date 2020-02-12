@@ -25,7 +25,7 @@ genedata, gleasonscores, mergedset = univariate_filter(genedata, gleasonscores)
 genedata, gleasonscores, mergedset = correlation_filter(genedata, gleasonscores, mergedset)
 genedata, gleasonscores, mergedset = recursive_feature_elimination(genedata, gleasonscores)
 genedata, gleasonscores, mergedset = feature_select_from_model(genedata, gleasonscores)
-#PCA_analysis(genedata, gleasonscores)
+#PCA_analysis(genedata, gleasonscores, 3)
 genedata, gleasonscores, mergedset = tree_based_selection(genedata, gleasonscores)
 genedata, gleasonscores, mergedset = L1_based_select(genedata, gleasonscores)
 
