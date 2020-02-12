@@ -1,7 +1,8 @@
 # RNAseq_ML
 
 Draft scripts for discovering best methods for feature selection with RNAseq data (using sklearn package). 
-To run: `$ python3 test_script.py`
+To run: 
+`$ python3 test_script.py`
 
 Mehods include:
 * Removing low variance
@@ -23,3 +24,4 @@ Best result (var, uni, cor, rec, sel, pca):
 
 
 Feature LR and RFC scores are visualised at the end:
+![cross validation scores][/figs/cross_val_graph.png]
