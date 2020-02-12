@@ -9,3 +9,7 @@ Mehods include:
 * Recursive feature elimination
 * Feature selection from model
 * PCA filter
+
+
+Data from:
+https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE54460
