@@ -1,7 +1,7 @@
 # RNAseq_ML
 
 Draft scripts for discovering best methods for feature selection with RNAseq data (using sklearn package). 
-To run: 
+To run:  
 `$ python3 test_script.py`
 
 Mehods include:
@@ -17,10 +17,15 @@ Data from:
 https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE54460
 
 Best result (var, uni, cor, rec, sel, pca): 
-* LR  Scores:    [0.68181818 0.76190476 0.76190476 0.80952381 0.76190476] 
-* Accuracy: 0.76 (+/- 0.08) 
-* RFC Scores:   [0.68181818 0.80952381 0.76190476 0.85714286 0.80952381] 
-* Accuracy: 0.78 (+/- 0.12) 
+* LR  Scores:     [0.68181818 0.76190476 0.76190476 0.80952381 0.76190476] 
+* Accuracy:       0.76 (+/- 0.08) 
+* RFC Scores:     [0.68181818 0.80952381 0.76190476 0.85714286 0.80952381] 
+* Accuracy:       0.78 (+/- 0.12) 
+
+
+## Next step is to use the sklearn pipeline functions
+
+
 
 
 Feature LR and RFC scores are visualised at the end:
