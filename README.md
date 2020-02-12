@@ -1,6 +1,7 @@
 # RNAseq_ML
 
-Draft script for discovering best methods for feature selection with RNAseq data (using sklearn package).
+Draft scripts for discovering best methods for feature selection with RNAseq data (using sklearn package). 
+To run: `bash python3 test_script.py`
 
 Mehods include:
 * Removing low variance
