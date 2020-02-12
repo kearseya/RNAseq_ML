@@ -25,3 +25,9 @@ Best result (var, uni, cor, rec, sel, pca):
 
 Feature LR and RFC scores are visualised at the end:
 ![cross validation scores](/figs/cross_val_graph.png)
+
+For the correlation filter, a heatmap is generated:
+![heatplot](/figs/correlation_matrix_example.png)
+
+Feature importance is also extracted and plotted at some steps:
+![relative feature importance](/figs/feature_importance_example.png)
