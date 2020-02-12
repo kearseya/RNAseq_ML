@@ -431,12 +431,12 @@ def L1_based_select(genedata, gleasonscores):
 
 
 
-def PCA_analysis(genedata, gleasonscores):
+def PCA_analysis(genedata, gleasonscores, n_comp):
     print("\n=====================================================\n")
     method = "PCA analysis"
     # pca - keep 90% of variance
     print("Prinipal component analysis")
-    pca = PCA(0.95, n_components=3, svd_solver='full')
+    pca = PCA(0.95, n_components=n_comp, svd_solver='full')
 
     print("Fitting and Transforming")
     principal_components = pca.fit_transform(genedata)
