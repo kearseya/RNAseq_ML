@@ -28,11 +28,9 @@ Mehods include:
 Also PCA analysis
 
 
-Best result (var, uni, cor, rec, sel, pca): 
-* LR  Scores:     [0.68181818 0.76190476 0.76190476 0.80952381 0.76190476] 
-* Accuracy:       0.76 (+/- 0.08) 
-* RFC Scores:     [0.68181818 0.80952381 0.76190476 0.85714286 0.80952381] 
-* Accuracy:       0.78 (+/- 0.12) 
+Example cross-validation (var -> uni, 500 features): 
+* RFC Scores:   [0.72727273 0.80952381 0.78947368 0.78947368 0.78947368]
+* Accuracy:     0.78 (+/- 0.06)
 
 Feature LR and RFC scores are visualised at the end:
 ![cross validation scores example](/figs/cross_val_graph.png)
