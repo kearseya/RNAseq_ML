@@ -7,7 +7,7 @@ import seaborn as sns
 import time
 
 import sklearn
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.datasets import make_classification
 from sklearn import feature_selection
 from sklearn.feature_selection import SelectFromModel
@@ -73,25 +73,25 @@ def initial_rank(genedata, gleasonscores):
 
 
 #produce graph showing the relatvie importance of the top features
-def plotimportances(fitdata, num_features, method):
+def plotimportances(fitdata, gene_data, num_features, method):
     feature_importance = fitdata
     feature_importance = 100.0 * (feature_importance / feature_importance.max())
     sorted_idx = np.argsort(feature_importance)
     sorted_idx = sorted_idx[-int(num_features):-1:1]
     pos = np.arange(sorted_idx.shape[0]) + .5
     plt.barh(pos, feature_importance[sorted_idx], align='center')
-    plt.yticks(pos, genedata.columns[sorted_idx])
+    plt.yticks(pos, gene_data.columns[sorted_idx])
     plt.xlabel('Relative Importance')
     plt.title('Feature Importance: '+method, fontsize=30)
     plt.tick_params(axis='x', which='major', labelsize=15)
     sns.despine(left=True, bottom=True)
     plt.show()
 
-#plotimportances(initial_feature_importance, 40, "Initial")
+#plotimportances(initial_feature_importance, gene_data, 40, "Initial")
 
 
 
-def variance_filter(genedata, gleasonscores):
+def variance_filter(gene_data, gleason_score):
     print("\n=====================================================\n")
     method = "Variance filter"
     #remove features with low variance
@@ -99,9 +99,9 @@ def variance_filter(genedata, gleasonscores):
     t1 = time.time()
     sel = feature_selection.VarianceThreshold()
     print("Fitting and Transforming")
-    train_variance = sel.fit_transform(genedata)
+    train_variance = sel.fit_transform(gene_data)
     passed_var_filter = sel.get_support()
-    before_num_genes = genedata.shape[1]
+    before_num_genes = gene_data.shape[1]
 
     print("Before:  ", str(before_num_genes))
     low_var_filter_genes = []
@@ -109,26 +109,34 @@ def variance_filter(genedata, gleasonscores):
         if bool:
             low_var_filter_genes.append(gene)
 
-    genedata = pd.DataFrame(train_variance, columns=low_var_filter_genes)
-    genedata = genedata.set_index(row_names)
-    print("After:   ", str(genedata.shape[1]), str(np.bool(genedata.shape[1]==train_variance.shape[1])))
-    print("Removed: ", str(before_num_genes-genedata.shape[1]))
+    gene_data = pd.DataFrame(train_variance, columns=low_var_filter_genes)
+    #gene_data = gene_data.set_index(row_names)
+    print("After:   ", str(gene_data.shape[1]), str(np.bool(gene_data.shape[1]==train_variance.shape[1])))
+    print("Removed: ", str(before_num_genes-gene_data.shape[1]))
+
+    rfc = RandomForestClassifier(n_estimators=500)
+    print("Cross validating")
+    rfc_scores = cross_val_score(rfc, gene_data, gleason_score['Gleason'], cv=5, verbose=True)
+    print("RFC Scores:  ", rfc_scores)
+    print("Accuracy: %0.2f (+/- %0.2f)" % (rfc_scores.mean(), rfc_scores.std() * 2))
+
+    print("Plotting importances")
+    rfc.fit(gene_data, gleason_score['Gleason'])
+    rfc_importances = rfc.feature_importances_
+    plotimportances(rfc_importances, gene_data, 50, method)
 
     global methodlog
-    methodlog.append({"method": method, "size": genedata.shape[1], "removed": before_num_genes-genedata.shape[1], "time-taken": time.time()-t1})
-
-    #remake merged dataset
-    mergedset = pd.merge(genedata, gleasonscores, left_index=True, right_index=True)
+    methodlog.append({"method": method, "size": gene_data.shape[1], "removed": before_num_genes-gene_data.shape[1], "rfc_scores": rfc_scores, "time-taken": time.time()-t1})
 
     print("\n=====================================================\n")
-    return genedata, gleasonscores, mergedset
+    return gene_data, gleason_score
 
-#genedata, gleasonscores, mergedset = variance_filter(genedata, gleasonscores)
-
-
+#gene_data, gleason_score = variance_filter(gene_data, gleason_score)
 
 
-def univariate_filter(genedata, gleasonscores):
+
+
+def univariate_filter(gene_data, gleason_score):
     print("\n=====================================================\n")
     method = "Univariate filter"
     #univariate feature selection
@@ -140,29 +148,10 @@ def univariate_filter(genedata, gleasonscores):
     k_best = feature_selection.SelectKBest(score_func=feature_selection.f_regression, k=500)
     #fit on training data and transform
     print("Fitting and Transforming")
-    univariate_features = k_best.fit_transform(genedata, gleasonscores['Gleason'])
+    univariate_features = k_best.fit_transform(gene_data, gleason_score['Gleason'])
 
-    lr = LogisticRegression(solver='lbfgs', multi_class='auto', max_iter=5000)
-    rfc = RandomForestClassifier(n_estimators=500)
-
-    print("Cross validating")
-    lr_scores = cross_val_score(lr, univariate_features, gleasonscores['Gleason'], cv=5, verbose=True)
-    rfc_scores = cross_val_score(rfc, univariate_features, gleasonscores['Gleason'], cv=5, verbose=True)
-
-    print("LR Scores:   ", lr_scores)
-    print("Accuracy: %0.2f (+/- %0.2f)" % (lr_scores.mean(), lr_scores.std() * 2))
-    print("RFC Scores:  ", rfc_scores)
-    print("Accuracy: %0.2f (+/- %0.2f)" % (rfc_scores.mean(), rfc_scores.std() * 2))
-
-    #checking which are the most important features
-    print("Feature selection from K")
-    k_feature_importance = rfc.fit(univariate_features, gleasonscores['Gleason']).feature_importances_
-
-    print("Plotting univariate features ")
-    plotimportances(k_feature_importance, 50, method)
-
-    gene_names = list(genedata.columns.values)
-    before_num_genes = genedata.shape[1]
+    gene_names = list(gene_data.columns.values)
+    before_num_genes = gene_data.shape[1]
     passed_univariate_filter = k_best.get_support()
     print("Before:  ", str(before_num_genes))
     univariate_filter_genes = []
@@ -170,33 +159,41 @@ def univariate_filter(genedata, gleasonscores):
         if bool:
             univariate_filter_genes.append(gene)
 
-    genedata = pd.DataFrame(univariate_features, columns=univariate_filter_genes)
-    genedata = genedata.set_index(row_names)
-    print("After:   ", str(genedata.shape[1]), str(np.bool(genedata.shape[1]==univariate_features.shape[1])))
-    print("Removed: ", str(before_num_genes-genedata.shape[1]))
+    gene_data = pd.DataFrame(univariate_features, columns=univariate_filter_genes)
+    #gene_data = gene_data.set_index(row_names)
+    print("After:   ", str(gene_data.shape[1]), str(np.bool(gene_data.shape[1]==univariate_features.shape[1])))
+    print("Removed: ", str(before_num_genes-gene_data.shape[1]))
+
+    rfc = RandomForestClassifier(n_estimators=500)
+    print("Cross validating")
+    rfc_scores = cross_val_score(rfc, gene_data, gleason_score['Gleason'], cv=5, verbose=True)
+    print("RFC Scores:  ", rfc_scores)
+    print("Accuracy: %0.2f (+/- %0.2f)" % (rfc_scores.mean(), rfc_scores.std() * 2))
+
+    #checking which are the most important features
+    print("Plotting importance")
+    k_feature_importance = rfc.fit(gene_data, gleason_score['Gleason']).feature_importances_
+    plotimportances(k_feature_importance, gene_data, 50, method)
 
     global methodlog
-    methodlog.append({"method": method, "size": genedata.shape[1], "removed": before_num_genes-genedata.shape[1], "lr_scores": lr_scores, "rfc_scores": rfc_scores, "lr_acc": lr_scores.mean(), "rfc_acc": rfc_scores.mean(), "lr_err": lr_scores.std()*2, "rfc_err": rfc_scores.std()*2, "time-taken": time.time()-t1})
-
-    #remake merged dataset
-    mergedset = pd.merge(genedata, gleasonscores, left_index=True, right_index=True)
+    methodlog.append({"method": method, "size": gene_data.shape[1], "removed": before_num_genes-gene_data.shape[1], "rfc_scores": rfc_scores, "time-taken": time.time()-t1})
 
     print("\n=====================================================\n")
-    return genedata, gleasonscores, mergedset
+    return gene_data, gleason_score
 
-#genedata, gleasonscores, mergedset = univariate_filter(genedata, gleasonscores)
+#gene_data, gleason_score = univariate_filter(gene_data, gleason_score)
 
 
 
-def correlation_filter(genedata, gleasonscores, mergedset):
+def correlation_filter(gene_data, gleason_score):
     print("\n=====================================================\n")
     method = "Correlation filter"
     #remove highly correlated features
     #this prevents overfitting (due to highly correlated or colinear features)
     print("Calculating correlation matrix (this may take some time, can crash)")
     t1 = time.time()
-    corr_matrix = mergedset.corr().abs()
-    print(corr_matrix['Gleason'].sort_values(ascending=False).head(10))
+    corr_matrix = gene_data.corr().abs()
+    ##print(corr_matrix['Gleason'].sort_values(ascending=False).head(10))
     #plot correlation matrix
     matrix = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(np.bool))
     sns.heatmap(matrix)
@@ -206,25 +203,33 @@ def correlation_filter(genedata, gleasonscores, mergedset):
     to_drop = [column for column in matrix.columns if any(matrix[column] > 0.50)]
     if "Gleason" in to_drop:
         to_drop.remove("Gleason")
-    print("Before:  ", str(genedata.shape[1]))
-    genedata = genedata.drop(to_drop, axis=1)
-    print("After:   ", str(genedata.shape[1]))
+    print("Before:  ", str(gene_data.shape[1]))
+    gene_data = gene_data.drop(to_drop, axis=1)
+    print("After:   ", str(gene_data.shape[1]))
     print("Removed: ", str(len(to_drop)))
 
-    global methodlog
-    methodlog.append({"method": method, "size": genedata.shape[1], "removed": len(to_drop), "time-taken": time.time()-t1})
+    rfc = RandomForestClassifier(n_estimators=500)
+    #cross validating
+    rfc_scores = cross_val_score(rfc, gene_data, gleason_score['Gleason'], cv=5, verbose=True)
+    print("RFC Scores:  ", rfc_scores)
+    print("Accuracy: %0.2f (+/- %0.2f)" % (rfc_scores.mean(), rfc_scores.std() * 2))
 
-    #remake merged dataset
-    mergedset = pd.merge(genedata, gleasonscores, left_index=True, right_index=True)
+    #checking which are the most important features
+    print("Plotting importance")
+    correlation_importance = rfc.fit(gene_data, gleason_score['Gleason']).feature_importances_
+    plotimportances(correlation_importance, gene_data, 50, method)
+
+    global methodlog
+    methodlog.append({"method": method, "size": gene_data.shape[1], "removed": len(to_drop), "rfc_scores": rfc_scores, "time-taken": time.time()-t1})
 
     print("\n=====================================================\n")
-    return genedata, gleasonscores, mergedset
+    return gene_data, gleason_score
 
-#genedata, gleasonscores, mergedset = correlation_filter(genedata, gleasonscores, mergedset)
+#gene_data, gleason_score = correlation_filter(gene_data, gleason_score)
 
 
 
-def recursive_feature_elimination(genedata, gleasonscores):
+def recursive_feature_elimination(gene_data, gleason_score):
     print("\n=====================================================\n")
     method = "Recursive feature elimination"
     #recursive feature elimination
@@ -237,25 +242,10 @@ def recursive_feature_elimination(genedata, gleasonscores):
     rfe = feature_selection.RFE(lr, verbose=True)
     #fit on train set and transform
     print("Fitting and Transforming")
-    RFE_features = rfe.fit_transform(genedata, gleasonscores['Gleason'])
+    RFE_features = rfe.fit_transform(gene_data, gleason_score['Gleason'])
 
-    lr = LogisticRegression(solver='liblinear', multi_class='auto', max_iter=5000)
-    rfc = RandomForestClassifier(n_estimators=2500)
-
-    print("Cross validating")
-    lr_scores = cross_val_score(lr, RFE_features, gleasonscores['Gleason'], cv=5)
-    rfc_scores = cross_val_score(rfc, RFE_features, gleasonscores['Gleason'], cv=5)
-
-    print("LR  Scores:   ", lr_scores)
-    print("Accuracy: %0.2f (+/- %0.2f)" % (lr_scores.mean(), lr_scores.std() * 2))
-    print("RFC Scores:  ", rfc_scores)
-    print("Accuracy: %0.2f (+/- %0.2f)" % (rfc_scores.mean(), rfc_scores.std() * 2))
-
-    rfe_importances = rfc.fit(RFE_features, gleasonscores['Gleason']).feature_importances_
-    plotimportances(rfe_importances, len(rfe_importances), method)
-
-    gene_names = list(genedata.columns.values)
-    before_num_genes = genedata.shape[1]
+    gene_names = list(gene_data.columns.values)
+    before_num_genes = gene_data.shape[1]
     passed_RFE_filter = rfe.get_support()
     print("Before:  ", str(before_num_genes))
     RFE_filter_genes = []
@@ -263,53 +253,49 @@ def recursive_feature_elimination(genedata, gleasonscores):
         if bool:
             RFE_filter_genes.append(gene)
 
-    genedata = pd.DataFrame(RFE_features, columns=RFE_filter_genes)
-    genedata = genedata.set_index(row_names)
-    print("After:   ", str(genedata.shape[1]), str(np.bool(genedata.shape[1]==RFE_features.shape[1])))
-    print("Removed: ", str(before_num_genes-genedata.shape[1]))
+    gene_data = pd.DataFrame(RFE_features, columns=RFE_filter_genes)
+    #gene_data = gene_data.set_index(row_names)
+    print("After:   ", str(gene_data.shape[1]), str(np.bool(gene_data.shape[1]==RFE_features.shape[1])))
+    print("Removed: ", str(before_num_genes-gene_data.shape[1]))
 
-    global methodlogp
-    methodlog.append({"method": method, "size": genedata.shape[1], "removed": before_num_genes-genedata.shape[1], "lr_scores": lr_scores, "rfc_scores": rfc_scores, "lr_acc": lr_scores.mean(), "rfc_acc": rfc_scores.mean(), "lr_err": lr_scores.std()*2, "rfc_err": rfc_scores.std()*2, "time-taken": time.time()-t1})
-
-    #remake merged dataset
-    mergedset = pd.merge(genedata, gleasonscores, left_index=True, right_index=True)
-
-    print("\n=====================================================\n")
-    return genedata, gleasonscores, mergedset
-
-#genedata, gleasonscores, mergedset = recursive_feature_elimination(genedata, gleasonscores)
-
-
-
-def feature_select_from_model(genedata, gleasonscores):
-    print("\n=====================================================\n")
-    method = "Feature select \nfrom model"
-    t1 = time.time()
-    lr = LogisticRegression(solver='liblinear', multi_class='auto', max_iter=5000)
-    #feature selection from model
-    #feature extraction
-    print("Feature selection from model")
-    select_model = feature_selection.SelectFromModel(lr)
-    #fit on train set
-    print("Fitting")
-    sel_fit = select_model.fit(genedata, gleasonscores['Gleason'])
-    #transform train set
-    print("Transforming")
-    model_features = sel_fit.transform(genedata)
-
-    lr = LogisticRegression(solver='liblinear', multi_class='auto')
-    rfc = RandomForestClassifier(n_estimators=500)
-
-    lr_scores = cross_val_score(lr, model_features, gleasonscores['Gleason'], cv=5)
-    rfc_scores = cross_val_score(rfc, model_features, gleasonscores['Gleason'], cv=5)
-
-    print("LR  Scores:   ", lr_scores)
-    print("Accuracy: %0.2f (+/- %0.2f)" % (lr_scores.mean(), lr_scores.std() * 2))
+    rfc = RandomForestClassifier(n_estimators=2500)
+    print("Cross validating")
+    rfc_scores = cross_val_score(rfc, gene_data, gleason_score['Gleason'], cv=5)
     print("RFC Scores:  ", rfc_scores)
     print("Accuracy: %0.2f (+/- %0.2f)" % (rfc_scores.mean(), rfc_scores.std() * 2))
 
-    gene_names = list(genedata.columns.values)
-    before_num_genes = genedata.shape[1]
+    print("Plotting importance")
+    recursive_importance = rfc.fit(gene_data, gleason_score['Gleason']).feature_importances_
+    plotimportances(recursive_importance, gene_data, 50, method)
+
+    global methodlogp
+    methodlog.append({"method": method, "size": gene_data.shape[1], "removed": before_num_genes-gene_data.shape[1], "rfc_scores": rfc_scores, "time-taken": time.time()-t1})
+
+    print("\n=====================================================\n")
+    return gene_data, gleason_score
+
+#gene_data, gleason_score = recursive_feature_elimination(gene_data, gleason_score)
+
+
+
+def feature_select_from_model(gene_data, gleason_score):
+    print("\n=====================================================\n")
+    method = "Feature select \nfrom model"
+    t1 = time.time()
+    rfc = RandomForestClassifier(n_estimators=500)
+    #feature selection from model
+    #feature extraction
+    print("Feature selection from model")
+    select_model = feature_selection.SelectFromModel(rfc)
+    #fit on train set
+    print("Fitting")
+    sel_fit = select_model.fit(gene_data, gleason_score['Gleason'])
+    #transform train set
+    print("Transforming")
+    model_features = sel_fit.transform(gene_data)
+
+    gene_names = list(gene_data.columns.values)
+    before_num_genes = gene_data.shape[1]
     passed_sel_filter = select_model.get_support()
     print("Before:  ", str(before_num_genes))
     sel_filter_genes = []
@@ -317,53 +303,47 @@ def feature_select_from_model(genedata, gleasonscores):
         if bool:
             sel_filter_genes.append(gene)
 
-    genedata = pd.DataFrame(model_features, columns=sel_filter_genes)
-    genedata = genedata.set_index(row_names)
-    print("After:   ", str(genedata.shape[1]), str(np.bool(genedata.shape[1]==model_features.shape[1])))
-    print("Removed: ", str(before_num_genes-genedata.shape[1]))
+    gene_data = pd.DataFrame(model_features, columns=sel_filter_genes)
+    #gene_data = gene_data.set_index(row_names)
+    print("After:   ", str(gene_data.shape[1]), str(np.bool(gene_data.shape[1]==model_features.shape[1])))
+    print("Removed: ", str(before_num_genes-gene_data.shape[1]))
+
+    rfc = RandomForestClassifier(n_estimators=500)
+    print("Cross validating")
+    rfc_scores = cross_val_score(rfc, model_features, gleason_score['Gleason'], cv=5)
+    print("RFC Scores:  ", rfc_scores)
+    print("Accuracy: %0.2f (+/- %0.2f)" % (rfc_scores.mean(), rfc_scores.std() * 2))
+
+    print("Plotting importance")
+    featsel_importances = rfc.fit(gene_data, gleason_score['Gleason']).feature_importances_
+    #plotimportances(featsel_importances, gene_data, 50, method)
 
     global methodlog
-    methodlog.append({"method": method, "size": genedata.shape[1], "removed": before_num_genes-genedata.shape[1], "lr_scores": lr_scores, "rfc_scores": rfc_scores, "lr_acc": lr_scores.mean(), "rfc_acc": rfc_scores.mean(), "lr_err": lr_scores.std()*2, "rfc_err": rfc_scores.std()*2, "time-taken": time.time()-t1})
-
-    #remake merged dataset
-    mergedset = pd.merge(genedata, gleasonscores, left_index=True, right_index=True)
+    methodlog.append({"method": method, "size": gene_data.shape[1], "removed": before_num_genes-gene_data.shape[1], "rfc_scores": rfc_scores, "time-taken": time.time()-t1})
 
     print("\n=====================================================\n")
-    return genedata, gleasonscores, mergedset
+    return gene_data, gleason_score
 
-#genedata, gleasonscores, mergedset = feature_select_from_model(genedata, gleasonscores)
+#gene_data, gleason_score = feature_select_from_model(gene_data, gleason_score)
 
 
 
-def tree_based_selection(genedata, gleasonscores):
+def tree_based_selection(gene_data, gleason_score):
     print("\n=====================================================\n")
     method = "Tree based selection"
     #tree based selection
     print(method)
     t1 = time.time()
-    etc = ExtraTreesClassifier(n_estimators=50)
+    etc = ExtraTreesClassifier(n_estimators=100)
     print("Fitting")
-    etc = etc.fit(genedata, gleasonscores['Gleason'])
+    etc = etc.fit(gene_data, gleason_score['Gleason'])
     etc_model = SelectFromModel(etc, prefit=True)
-    etc_importances = etc.feature_importances_
-    plotimportances(etc_importances, len(etc_importances), method)
     print("Transforming")
-    etc_features = etc_model.transform(genedata)
+    etc_features = etc_model.transform(gene_data)
 
-    lr = LogisticRegression(solver='liblinear', multi_class='auto')
-    rfc = RandomForestClassifier(n_estimators=500)
 
-    print("Cross validating")
-    lr_scores = cross_val_score(lr, etc_features, gleasonscores['Gleason'], cv=5)
-    rfc_scores = cross_val_score(rfc, etc_features, gleasonscores['Gleason'], cv=5)
-
-    print("LR  Scores:   ", lr_scores)
-    print("Accuracy: %0.2f (+/- %0.2f)" % (lr_scores.mean(), lr_scores.std() * 2))
-    print("RFC Scores:  ", rfc_scores)
-    print("Accuracy: %0.2f (+/- %0.2f)" % (rfc_scores.mean(), rfc_scores.std() * 2))
-
-    gene_names = list(genedata.columns.values)
-    before_num_genes = genedata.shape[1]
+    gene_names = list(gene_data.columns.values)
+    before_num_genes = gene_data.shape[1]
     passed_etc_filter = etc_model.get_support()
     print("Before:  ", str(before_num_genes))
     etc_filter_genes = []
@@ -371,51 +351,45 @@ def tree_based_selection(genedata, gleasonscores):
         if bool:
             etc_filter_genes.append(gene)
 
-    genedata = pd.DataFrame(etc_features, columns=etc_filter_genes)
-    genedata = genedata.set_index(row_names)
-    print("After:   ", str(genedata.shape[1]), str(np.bool(genedata.shape[1]==etc_features.shape[1])))
-    print("Removed: ", str(before_num_genes-genedata.shape[1]))
+    gene_data = pd.DataFrame(etc_features, columns=etc_filter_genes)
+    #gene_data = gene_data.set_index(row_names)
+    print("After:   ", str(gene_data.shape[1]), str(np.bool(gene_data.shape[1]==etc_features.shape[1])))
+    print("Removed: ", str(before_num_genes-gene_data.shape[1]))
+
+    rfc = RandomForestClassifier(n_estimators=500)
+    print("Cross validating")
+    rfc_scores = cross_val_score(rfc, gene_data, gleason_score['Gleason'], cv=5)
+    print("RFC Scores:  ", rfc_scores)
+    print("Accuracy: %0.2f (+/- %0.2f)" % (rfc_scores.mean(), rfc_scores.std() * 2))
+    print("Plotting importances")
+    etc_importances = etc.feature_importances_
+    #plotimportances(etc_importances, gene_data, 2, method)
 
     global methodlog
-    methodlog.append({"method": method, "size": genedata.shape[1], "removed": before_num_genes-genedata.shape[1], "lr_scores": lr_scores, "rfc_scores": rfc_scores, "lr_acc": lr_scores.mean(), "rfc_acc": rfc_scores.mean(), "lr_err": lr_scores.std()*2, "rfc_err": rfc_scores.std()*2, "time-taken": time.time()-t1})
-
-    #remake merged dataset
-    mergedset = pd.merge(genedata, gleasonscores, left_index=True, right_index=True)
+    methodlog.append({"method": method, "size": gene_data.shape[1], "removed": before_num_genes-gene_data.shape[1], "rfc_scores": rfc_scores, "time-taken": time.time()-t1})
 
     print("\n=====================================================\n")
-    return genedata, gleasonscores, mergedset
+    return gene_data, gleason_score
 
-#genedata, gleasonscores, mergedset = tree_based_selection(genedata, gleasonscores, mergedset)
+#gene_data, gleason_score = tree_based_selection(gene_data, gleason_score, mergedset)
 
 
-def L1_based_select(genedata, gleasonscores):
+def L1_based_select(gene_data, gleason_score):
     print("\n=====================================================\n")
     method = "L1-based selection"
     print(method)
     #lr = LogisticRegression(solver='liblinear', multi_class='auto', max_iter=5000)
     print("Fitting")
     t1 = time.time()
-    lsvc = LinearSVC(C=0.01, penalty="l1", dual=False).fit(genedata, gleasonscores['Gleason'])
+    lsvc = LinearSVC(C=0.01, penalty="l1", dual=False).fit(gene_data, gleason_score['Gleason'])
     L1_model = SelectFromModel(lsvc, prefit=True)
     #L1_importances = lsvc.feature_importances_ #not supported with current method
-    #plotimportances(L1_importances, len(L1_importances), method)
+    #plotimportances(L1_importances, gene_data, len(L1_importances), method)
     print("Transforming")
-    model_features = L1_model.transform(genedata)
+    model_features = L1_model.transform(gene_data)
 
-    lr = LogisticRegression(solver='liblinear', multi_class='auto')
-    rfc = RandomForestClassifier(n_estimators=500)
-
-    print("Cross validating")
-    lr_scores = cross_val_score(lr, model_features, gleasonscores['Gleason'], cv=5)
-    rfc_scores = cross_val_score(rfc, model_features, gleasonscores['Gleason'], cv=5)
-
-    print("LR  Scores:   ", lr_scores)
-    print("Accuracy: %0.2f (+/- %0.2f)" % (lr_scores.mean(), lr_scores.std() * 2))
-    print("RFC Scores:  ", rfc_scores)
-    print("Accuracy: %0.2f (+/- %0.2f)" % (rfc_scores.mean(), rfc_scores.std() * 2))
-
-    gene_names = list(genedata.columns.values)
-    before_num_genes = genedata.shape[1]
+    gene_names = list(gene_data.columns.values)
+    before_num_genes = gene_data.shape[1]
     passed_L1_filter = L1_model.get_support()
     print("Before:  ", str(before_num_genes))
     L1_filter_genes = []
@@ -423,25 +397,32 @@ def L1_based_select(genedata, gleasonscores):
         if bool:
             L1_filter_genes.append(gene)
 
-    genedata = pd.DataFrame(model_features, columns=L1_filter_genes)
-    genedata = genedata.set_index(row_names)
-    print("After:   ", str(genedata.shape[1]), str(np.bool(genedata.shape[1]==model_features.shape[1])))
-    print("Removed: ", str(before_num_genes-genedata.shape[1]))
+    gene_data = pd.DataFrame(model_features, columns=L1_filter_genes)
+    #gene_data = gene_data.set_index(row_names)
+    print("After:   ", str(gene_data.shape[1]), str(np.bool(gene_data.shape[1]==model_features.shape[1])))
+    print("Removed: ", str(before_num_genes-gene_data.shape[1]))
+
+    rfc = RandomForestClassifier(n_estimators=500)
+    print("Cross validating")
+    rfc_scores = cross_val_score(rfc, gene_data, gleason_score['Gleason'], cv=5)
+    print("RFC Scores:  ", rfc_scores)
+    print("Accuracy: %0.2f (+/- %0.2f)" % (rfc_scores.mean(), rfc_scores.std() * 2))
+
+    print("Plotting importances")
+    L1_importance = rfc.fit(gene_data, gleason_score['Gleason']).feature_importances_
+    #plotimportances(L1_importance, gene_data, 2, method)
 
     global methodlog
-    methodlog.append({"method": method, "size": genedata.shape[1], "removed": before_num_genes-genedata.shape[1], "lr_scores": lr_scores, "rfc_scores": rfc_scores, "lr_acc": lr_scores.mean(), "rfc_acc": rfc_scores.mean(), "lr_err": lr_scores.std()*2, "rfc_err": rfc_scores.std()*2, "time-taken": time.time()-t1})
-
-    #remake merged dataset
-    mergedset = pd.merge(genedata, gleasonscores, left_index=True, right_index=True)
+    methodlog.append({"method": method, "size": gene_data.shape[1], "removed": before_num_genes-gene_data.shape[1], "rfc_scores": rfc_scores, "time-taken": time.time()-t1})
 
     print("\n=====================================================\n")
-    return genedata, gleasonscores, mergedset
+    return gene_data, gleason_score
 
-#genedata, gleasonscores, mergedset = L1_based_select(genedata, gleasonscores)
+#gene_data, gleason_score = L1_based_select(gene_data, gleason_score)
 
 
 
-def PCA_analysis(genedata, gleasonscores, n_comp):
+def PCA_analysis(gene_data, gleason_score, n_comp):
     print("\n=====================================================\n")
     method = "PCA analysis"
     # pca - keep 90% of variance
@@ -450,7 +431,7 @@ def PCA_analysis(genedata, gleasonscores, n_comp):
     pca = PCA(0.95, n_components=n_comp, svd_solver='full')
 
     print("Fitting and Transforming")
-    principal_components = pca.fit_transform(genedata)
+    principal_components = pca.fit_transform(gene_data)
     principal_df = pd.DataFrame(data = principal_components)
     print(principal_df.shape)
     print(pca.explained_variance_ratio_)
@@ -460,8 +441,8 @@ def PCA_analysis(genedata, gleasonscores, n_comp):
     rfc = RandomForestClassifier(n_estimators=100)
 
     print("Cross validating")
-    lr_scores = cross_val_score(lr, principal_df, gleasonscores['Gleason'], cv=5)
-    rfc_scores = cross_val_score(rfc, principal_df, gleasonscores['Gleason'], cv=5)
+    lr_scores = cross_val_score(lr, principal_df, gleason_score['Gleason'], cv=5)
+    rfc_scores = cross_val_score(rfc, principal_df, gleason_score['Gleason'], cv=5)
 
     print("LR  Scores:   ", lr_scores)
     print("Accuracy: %0.2f (+/- %0.2f)" % (lr_scores.mean(), lr_scores.std() * 2))
@@ -469,15 +450,12 @@ def PCA_analysis(genedata, gleasonscores, n_comp):
     print("Accuracy: %0.2f (+/- %0.2f)" % (rfc_scores.mean(), rfc_scores.std() * 2))
 
     global methodlog
-    methodlog.append({"method": method, "size": genedata.shape[1], "lr_scores": lr_scores, "rfc_scores": rfc_scores, "lr_acc": lr_scores.mean(), "rfc_acc": rfc_scores.mean(), "lr_err": lr_scores.std()*2, "rfc_err": rfc_scores.std()*2, "time-taken": time.time()-t1})
-
-    #remake merged dataset
-    #mergedset = pd.merge(genedata, gleasonscores, left_index=True, right_index=True)
+    methodlog.append({"method": method, "size": gene_data.shape[1], "rfc_scores": rfc_scores, "time-taken": time.time()-t1})
 
     print("\n=====================================================\n")
-    #return genedata, gleasonscores, mergedset
+    #return gene_data, gleason_score
 
-#PCA_analysis(genedata, gleasonscores)
+#PCA_analysis(gene_data, gleason_score)
 
 
 
@@ -488,37 +466,31 @@ def PCA_analysis(genedata, gleasonscores, n_comp):
 def visualise_accuracy_methodlog():
     methodorder = []
     size = []
-    lr_accuracy = []
     rfc_accuracy = []
-    lr_error = []
     rfc_error = []
     for i in range(len(methodlog)):
         methodorder.append(methodlog[i]['method'])
         size.append(methodlog[i]['size'])
         try:
-            lr_accuracy.append(methodlog[i]['lr_acc'])
-            rfc_accuracy.append(methodlog[i]['rfc_acc'])
-            lr_error.append(methodlog[i]['lr_err'])
-            rfc_error.append(methodlog[i]['rfc_err'])
+            rfc_accuracy.append(np.mean(methodlog[i]['rfc_scores']))
+            rfc_error.append(np.std(methodlog[i]['rfc_scores'])*2)
         except:
-            lr_accuracy.append(0.0)
             rfc_accuracy.append(0.0)
-            lr_error.append(0.0)
             rfc_error.append(0.0)
 
     ind = np.arange(len(methodlog))
-    width = 0.35
+    width = 0.45
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    rects1 = ax.bar(ind, tuple(lr_accuracy), width, color='royalblue', yerr=tuple(lr_error))
-    rects2 = ax.bar(ind+width, tuple(rfc_accuracy), width, color='seagreen', yerr=tuple(rfc_error))
+    rects1 = ax.bar(ind, tuple(rfc_accuracy), width, color='royalblue', yerr=tuple(rfc_error))
+    #rects2 = ax.bar(ind+width, tuple(rfr_accuracy), width, color='seagreen', yerr=tuple(rfr_error))
     # add some
     ax.set_ylabel('Accuracy')
-    ax.set_title('Scores for LR and RFC')
-    ax.set_xticks(ind + width / 2)
+    ax.set_title('Cross validation scores\n for RFC')
+    ax.set_xticks(ind) #+ width / 2)
     ax.set_xticklabels(tuple(methodorder))
 
-    ax.legend( (rects1[0], rects2[0]), ('Logistic Regression', 'Random Forest Classifier') )
+    #ax.legend( (rects1[0]), ('Random Forest Classifier') ) #, rects2[0]), ('Logistic Regression', 'Random Forest Classifier') )
 
     plt.show()
 
@@ -534,6 +506,10 @@ def visualise_accuracy_methodlog():
 
 """
 code removed:
+#Don't think logistic regression will work (not binary)
+#lr_scores = cross_val_score(lr, univariate_features, gleason_score['Gleason'], cv=5, verbose=True)
+#print("LR Scores:   ", lr_scores)
+#print("Accuracy: %0.2f (+/- %0.2f)" % (lr_scores.mean(), lr_scores.std() * 2))
 
 #print(k_fit)
 #transform training data
@@ -547,37 +523,37 @@ print(univariate_features.shape)
 
 #DOESN'T WORK
 #mod_sel_importances = sel_fit.feature_importances_
-#plotimportances(mod_sel_importances, len(mod_sel_importances), method)
+#plotimportances(mod_sel_importances, gene_data, len(mod_sel_importances), method)
 
 #DOESN'T WORK
-#PCA_importances = pca.fit(principal_components, gleasonscores['Gleason']).feature_importances_
-#plotimportances(PCA_importances, len(PCA_importances), method)
+#PCA_importances = pca.fit(principal_components, gleason_score['Gleason']).feature_importances_
+#plotimportances(PCA_importances, gene_data, len(PCA_importances), method)
 
     lr = LogisticRegression(solver='liblinear', multi_class='auto')
     rfc = RandomForestClassifier(n_estimators=100)
 
     print("Cross validating")
-    lr_scores = cross_val_score(lr, principal_df, gleasonscores['Gleason'], cv=5)
-    rfc_scores = cross_val_score(rfc, principal_df, gleasonscores['Gleason'], cv=5)
+    lr_scores = cross_val_score(lr, principal_df, gleason_score['Gleason'], cv=5)
+    rfc_scores = cross_val_score(rfc, principal_df, gleason_score['Gleason'], cv=5)
 
     print("LR  Scores:   ", lr_scores)
     print("Accuracy: %0.2f (+/- %0.2f)" % (lr_scores.mean(), lr_scores.std() * 2))
     print("RFC Scores:  ", rfc_scores)
     print("Accuracy: %0.2f (+/- %0.2f)" % (rfc_scores.mean(), rfc_scores.std() * 2))
 
-    gene_names = list(genedata.columns.values)
-    before_num_genes = genedata.shape[1]
+    gene_names = list(gene_data.columns.values)
+    before_num_genes = gene_data.shape[1]
     passed_pca_filter = False
     print("Before:  ", str(before_num_genes))
     pca_filter_genes = []
     for bool, gene in zip(passed_pca_filter, gene_names):
         if bool:
             pca_filter_genes.append(gene)
-    genedata = pd.DataFrame(principal_components, columns=pca_filter_genes)
-    genedata = genedata.set_index(row_names)
-    print("After:   ", str(genedata.shape[1]), str(np.bool(genedata.shape[1]==principal_components.shape[1])))
-    print("Removed: ", str(before_num_genes-genedata.shape[1]))
+    gene_data = pd.DataFrame(principal_components, columns=pca_filter_genes)
+    #gene_data = gene_data.set_index(row_names)
+    print("After:   ", str(gene_data.shape[1]), str(np.bool(gene_data.shape[1]==principal_components.shape[1])))
+    print("Removed: ", str(before_num_genes-gene_data.shape[1]))
 
     global methodlog
-    methodlog.append({"method": method, "size": genedata.shape[1], "removed": before_num_genes-genedata.shape[1], "lr_scores": lr_scores, "rfc_scores": rfc_scores, "lr_acc": lr_scores.mean(), "rfc_acc": rfc_scores.mean(), "lr_err": lr_scores.std()*2, "rfc_err": rfc_scores.std()*2})
+    methodlog.append({"method": method, "size": gene_data.shape[1], "removed": before_num_genes-gene_data.shape[1], "lr_scores": lr_scores, "rfc_scores": rfc_scores, "lr_acc": lr_scores.mean(), "rfc_acc": rfc_scores.mean(), "lr_err": lr_scores.std()*2, "rfc_err": rfc_scores.std()*2})
 """
