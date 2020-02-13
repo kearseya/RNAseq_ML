@@ -35,10 +35,10 @@ Best result (var, uni, cor, rec, sel, pca):
 * Accuracy:       0.78 (+/- 0.12) 
 
 Feature LR and RFC scores are visualised at the end:
-![cross validation scores](/figs/cross_val_graph.png)
+![cross validation scores example](/figs/cross_val_graph.png)
 
 For the correlation filter, a heatmap is generated:
-![heatplot](/figs/correlation_matrix_example.png)
+![heatplot example](/figs/correlation_matrix_example.png)
 
 Feature importance is also extracted and plotted at some steps:
-![relative feature importance](/figs/feature_importance_example.png)
+![relative feature importance example](/figs/feature_importance_example.png)
