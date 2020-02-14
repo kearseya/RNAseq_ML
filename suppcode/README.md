@@ -1,6 +1,6 @@
 ## Learning curve
 
-Exmperimental learning curve:
+Exmperimental learning curve (*NB needs correcting*):
 
 ![learning curve](/figs/learning_curve_example_needsfix.png)
 
