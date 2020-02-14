@@ -6,9 +6,9 @@ Data from:
 https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE54460
 
 
-## Next step is to use the sklearn pipeline functions
+## Next step is to use the sklearn pipeline functions and hyperparameter finding
 
-Manual methods script for initial investigation of a few methods, sklearn submodule pipeline has wider functionality.
+Manual methods script for initial investigation of a few methods, sklearn submodule pipeline has wider functionality.Hyperparameters also need to be found to make model more optimal.
 
 ### Preliminary data generated from manual methods script
 
