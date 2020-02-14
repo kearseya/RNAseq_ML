@@ -6,7 +6,7 @@ import seaborn as sns
 
 import sklearn
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, classification_report
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.pipeline import Pipeline
 from sklearn import feature_selection
@@ -14,7 +14,9 @@ from sklearn.model_selection import cross_validate, cross_val_score
 from sklearn.decomposition import PCA
 
 from sklearn.model_selection import validation_curve
-from sklearn.linear_model import Ridge
+from sklearn.tree import export_graphviz
+from subprocess import call
+from sklearn.metrics import multilabel_confusion_matrix, plot_confusion_matrix
 
 #from sklearn.linear_model import LogisticRegression
 #import sklearn.neural_network
@@ -38,8 +40,8 @@ gene_train_filt, gleason_train = correlation_filter(gene_train_filt, gleason_tra
 gene_train_filt, gleason_train = recursive_feature_elimination(gene_train_filt, gleason_train)
 gene_train_filt, gleason_train = feature_select_from_model(gene_train_filt, gleason_train)
 #PCA_analysis(gene_train_filt, gleason_train, 3)
-#gene_train_filt, gleason_train = tree_based_selection(gene_train_filt, gleason_train)
-#gene_train_filt, gleason_train = L1_based_select(gene_train_filt, gleason_train)
+gene_train_filt, gleason_train = tree_based_selection(gene_train_filt, gleason_train)
+gene_train_filt, gleason_train = L1_based_select(gene_train_filt, gleason_train)
 
 #cop and paste down here order:
 
@@ -49,10 +51,12 @@ gene_train_filt, gleason_train = feature_select_from_model(gene_train_filt, glea
 base_rfc = RandomForestClassifier(n_estimators = 100) #, max_features=None)
 base_rfc.fit(gene_train, gleason_train['Gleason'] )
 base_rfc_predictions = base_rfc.predict(gene_test)
-print("Base RFC accuracy: ", accuracy_score(gleason_test, base_rfc_predictions))
-print("Base Num features: ", base_rfc.n_features_)
-#print("Num classes: ", base_rfc.n_classes_)
-#print("Num outputs: ", base_rfc.n_outputs_)
+print("Base RFC accuracy:   ", accuracy_score(gleason_test, base_rfc_predictions))
+print("Base RFC class rep:", classification_report(gleason_test, base_rfc_predictions))
+print("Base Num features:   ", base_rfc.n_features_)
+#print("Num classes:         ", base_rfc.n_classes_)
+#print("Num outputs:         ", base_rfc.n_outputs_)
+#vis_trees(base_rfc, "base")
 
 def filter_data():
     global gene_train
@@ -74,16 +78,26 @@ def model_accuracy():
     print("\n=====================================================\n")
     #Random Forest Classifier
     rfc = RandomForestClassifier(n_estimators=8) #value from validation curve, check with hyperparameters
-    rfc.fit(gene_train, gleason_train['Gleason'] )
-    rfc_predictions = rfc.predict(gene_test)
-    print("RFC accuracy: ", accuracy_score(gleason_test['Gleason'], rfc_predictions))
-    print("Num features: ", rfc.n_features_)
-    #print("Num classes: ", rfc.n_classes_)
-    #print("Num outputs: ", rfc.n_outputs_)
+    global rfc_fit
+    rfc_fit = rfc.fit(gene_train, gleason_train['Gleason'])
+    global rfc_predictions
+    rfc_predictions = rfc_fit.predict(gene_test)
+    print("RFC accuracy:    ", accuracy_score(gleason_test['Gleason'], rfc_predictions))
+    print("RFC class rep:", classification_report(gleason_test['Gleason'], rfc_predictions))
+    print("Num features:    ", rfc.n_features_)
+    #print("Num classes:     ", rfc.n_classes_)
+    #print("Num outputs:     ", rfc.n_outputs_)
+    #print(rfc_fit.base_estimator_)
+    #print(rfc_fit.estimators_)
     print("\n=====================================================\n")
 
 model_accuracy()
 
+# print("Plotting decision trees")
+#vis_trees(rfc_fit, "fit")
+print("Plotting confusion")
+plot_confusion_matrix(rfc_fit, genedata[features_selected], gleasonscores, normalize='true').ax_.set_title("Multilabel Confusion Matrix")
+#multilabel_confusion_plot(rfc_fit, gleason_test['Gleason'], rfc_predictions) #redundent after update
 
 
 print("Method Log")
@@ -120,7 +134,7 @@ def val_curve_gen(gene_data, gleason_score):
     plt.legend(loc="best")
     plt.show()
 
-val_curve_gen(genedata, gleasonscores)
+#val_curve_gen(genedata, gleasonscores)
 
 #val_curve_gen(gene_train, gleason_train)
 
@@ -174,4 +188,8 @@ print("RFR: ", rfr_predictions)
 #lr = LogisticRegression(solver='lbfgs', multi_class='auto', max_iter=7500)
 #lr.fit(gene_train, gleason_train['Gleason'])    #predictions = lr.predict(gene_test)
 #print("LR:  ", accuracy_score(gleason_test['Gleason'], predictions))
+
+#if control/cancer model implimented
+#print("Plotting Precision Recall Curve")
+#plot_precision_recall_curve(rfc_fit, genedata[features_selected], gleasonscores)
 """

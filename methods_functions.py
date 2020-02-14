@@ -5,13 +5,18 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 import time
+import itertools
 
 import sklearn
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor, ExtraTreesClassifier
 from sklearn import feature_selection
+from sklearn.inspection import permutation_importance
 from sklearn.model_selection import cross_validate, cross_val_score
 from sklearn.svm import LinearSVC
 from sklearn.decomposition import PCA
+from sklearn.tree import export_graphviz
+from subprocess import call
+from sklearn.metrics import multilabel_confusion_matrix
 
 #import sklearn.neural_network
 #from sklearn.linear_model import LogisticRegression
@@ -82,21 +87,35 @@ def initial_rank(genedata, gleasonscores):
 
 
 #produce graph showing the relatvie importance of the top features
-def plotimportances(fitdata, gene_data, num_features, method):
-    feature_importance = fitdata
-    feature_importance = 100.0 * (feature_importance / feature_importance.max())
-    sorted_idx = np.argsort(feature_importance)
-    sorted_idx = sorted_idx[-int(num_features):-1:1]
-    pos = np.arange(sorted_idx.shape[0]) + .5
-    plt.barh(pos, feature_importance[sorted_idx], align='center')
-    plt.yticks(pos, gene_data.columns[sorted_idx])
-    plt.xlabel('Relative Importance')
-    plt.title('Feature Importance: '+method, fontsize=30)
-    plt.tick_params(axis='x', which='major', labelsize=15)
-    sns.despine(left=True, bottom=True)
+def plotimportances(in_feature_importances, gene_data, num_features, method):
+    feature_importances = pd.Series(100*(in_feature_importances/max(in_feature_importances)), index=gene_data.columns)
+    if num_features > 50:
+        num_features = 50
+    fig, ax = plt.subplots()
+    top = feature_importances.nlargest(num_features)
+    ax.barh(list(reversed(list(top.index))), list(reversed(list(top.data))),  color=['#ff0000' if (x < 50) else '#fff700' if (50 <= x <= 75) else '#33ff00' for x in list(reversed(list(top.data)))])
+    ax.set_title("Feature importance: "+method)
+    ax.set_xlabel("Relative importance")
+    ax.set_ylabel("Features (Genes)")
+    plt.show()
+#plotimportances(initial_feature_importance, gene_data, 40, "Initial")
+
+#FIX and impliment
+def plot_perm_importances(model, in_feature_importances, gene_data, gleason_score, num_features, method, setname):
+    feature_importances = pd.Series(100*(in_feature_importances/max(in_feature_importances)), index=gene_data.columns)
+    top = feature_importances.nlargest(num_features)
+    if num_features > 50:
+        num_features = 50
+    result = permutation_importance(model, gene_data[list(top.index)], gleason_score['Gleason'], n_repeats=10,
+                            random_state=42, n_jobs=2)
+    sorted_idx = result.importances_mean.argsort()
+    fig, ax = plt.subplots()
+    ax.boxplot(result.importances[sorted_idx].T,
+           vert=False, labels=gene_data.columns[sorted_idx])
+    ax.set_title("Permutation Importances: "+method+" ("+setname+" set)")
+    fig.tight_layout()
     plt.show()
 
-#plotimportances(initial_feature_importance, gene_data, 40, "Initial")
 
 
 
@@ -183,8 +202,9 @@ def univariate_filter(gene_data, gleason_score):
 
     #checking which are the most important features
     print("Plotting importance")
-    k_feature_importance = rfc.fit(gene_data, gleason_score['Gleason']).feature_importances_
-    plotimportances(k_feature_importance, gene_data, 50, method)
+    k_feature_importances = rfc.fit(gene_data, gleason_score['Gleason']).feature_importances_
+    plotimportances(k_feature_importances, gene_data, len(list(gene_data.columns.values)), method)
+    #plot_perm_importances(rfc, k_feature_importances, gene_data, gleason_score, len(list(gene_data.columns.values)), method, "train")
 
     global methodlog
     methodlog.append({"method": method, "size": gene_data.shape[1], "removed": before_num_genes-gene_data.shape[1], "rfc_scores": rfc_scores, "time-taken": time.time()-t1})
@@ -207,8 +227,8 @@ def correlation_filter(gene_data, gleason_score):
     ##print(corr_matrix['Gleason'].sort_values(ascending=False).head(10))
     #plot correlation matrix
     matrix = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(np.bool))
-    sns.heatmap(matrix)
-    plt.show()
+    #sns.heatmap(matrix)
+    #plt.show()
 
     #find index of feature columns with high correlation
     to_drop = [column for column in matrix.columns if any(matrix[column] > 0.50)]
@@ -228,8 +248,8 @@ def correlation_filter(gene_data, gleason_score):
 
     #checking which are the most important features
     print("Plotting importance")
-    correlation_importance = rfc.fit(gene_data, gleason_score['Gleason']).feature_importances_
-    plotimportances(correlation_importance, gene_data, 50, method)
+    correlation_importances = rfc.fit(gene_data, gleason_score['Gleason']).feature_importances_
+    plotimportances(correlation_importances, gene_data, len(list(gene_data.columns.values)), method)
 
     global methodlog
     methodlog.append({"method": method, "size": gene_data.shape[1], "removed": len(to_drop), "rfc_scores": rfc_scores, "time-taken": time.time()-t1})
@@ -278,8 +298,8 @@ def recursive_feature_elimination(gene_data, gleason_score):
     print("Accuracy:    %0.2f (+/- %0.2f)" % (rfc_scores.mean(), rfc_scores.std() * 2))
 
     print("Plotting importance")
-    recursive_importance = rfc.fit(gene_data, gleason_score['Gleason']).feature_importances_
-    plotimportances(recursive_importance, gene_data, 50, method)
+    recursive_importances = rfc.fit(gene_data, gleason_score['Gleason']).feature_importances_
+    plotimportances(recursive_importances, gene_data, len(list(gene_data.columns.values)), method)
 
     global methodlogp
     methodlog.append({"method": method, "size": gene_data.shape[1], "removed": before_num_genes-gene_data.shape[1], "rfc_scores": rfc_scores, "time-taken": time.time()-t1})
@@ -330,7 +350,7 @@ def feature_select_from_model(gene_data, gleason_score):
 
     print("Plotting importance")
     featsel_importances = rfc.fit(gene_data, gleason_score['Gleason']).feature_importances_
-    #plotimportances(featsel_importances, gene_data, 50, method)
+    plotimportances(featsel_importances, gene_data, len(list(gene_data.columns.values)), method)
 
     global methodlog
     methodlog.append({"method": method, "size": gene_data.shape[1], "removed": before_num_genes-gene_data.shape[1], "rfc_scores": rfc_scores, "time-taken": time.time()-t1})
@@ -377,8 +397,8 @@ def tree_based_selection(gene_data, gleason_score):
     print("RFC Scores:  ", rfc_scores)
     print("Accuracy:    %0.2f (+/- %0.2f)" % (rfc_scores.mean(), rfc_scores.std() * 2))
     print("Plotting importances")
-    etc_importances = etc.feature_importances_
-    #plotimportances(etc_importances, gene_data, 2, method)
+    etc_importances = ExtraTreesClassifier(n_estimators=100).fit(gene_data, gleason_score['Gleason']).feature_importances_
+    plotimportances(etc_importances, gene_data, len(list(gene_data.columns.values)), method)
 
     global methodlog
     methodlog.append({"method": method, "size": gene_data.shape[1], "removed": before_num_genes-gene_data.shape[1], "rfc_scores": rfc_scores, "time-taken": time.time()-t1})
@@ -426,7 +446,7 @@ def L1_based_select(gene_data, gleason_score):
 
     print("Plotting importances")
     L1_importance = rfc.fit(gene_data, gleason_score['Gleason']).feature_importances_
-    #plotimportances(L1_importance, gene_data, 2, method)
+    plotimportances(L1_importance, gene_data, len(list(gene_data.columns.values)), method)
 
     global methodlog
     methodlog.append({"method": method, "size": gene_data.shape[1], "removed": before_num_genes-gene_data.shape[1], "rfc_scores": rfc_scores, "time-taken": time.time()-t1})
@@ -506,12 +526,111 @@ def visualise_accuracy_methodlog():
     plt.show()
 
 
+def vis_trees(model, name):
+    #assuming model is RFC
+    #export_graphviz(model.base_estimator_, out_file="trees/tree_base_"+str(name)+".dot")
+    #call(['dot', '-Tpng', 'trees/tree_base_'+str(name)+'.dot', '-o', 'trees/tree_base_'+str(name)+'.png', '-Gdpi=600'])
+    for i in range(len(model.estimators_)):
+        export_graphviz(model.estimators_[i], out_file="trees/tree_"+str(name)+"_"+str(i)+".dot")
+        call(['dot', '-Tpng', 'trees/tree_'+str(name)+'_'+str(i)+'.dot', '-o', 'trees/tree_'+str(name)+'_'+str(i)+'.png', '-Gdpi=600'])
+
+
+
+
+def multilabel_confusion_plot(model, y_test, pred): #redundent after update
+    target_names = list(model.classes_)
+    print(target_names)
+    cm = multilabel_confusion_matrix(y_test, pred)
+    print(cm)
+    cm = np.reshape(cm, (len(target_names), len(target_names)))
+    print(cm)
+    accuracy = np.trace(cm) / float(np.sum(cm))
+    misclass = 1 - accuracy
+
+    cmap = plt.get_cmap('Blues')
+
+    plt.figure(figsize=(8, 6))
+    plt.imshow(cm, interpolation='nearest', cmap=cmap)
+    plt.title('Multilabel Confusion Matrix')
+    plt.colorbar()
+
+    x_tick_marks = np.arange(len(target_names))
+    y_tick_marks = np.arange(len(target_names))
+    plt.xticks(x_tick_marks, target_names, rotation=45)
+    plt.yticks(y_tick_marks, target_names)
+
+    normalize = True
+    if normalize:
+        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+
+    thresh = cm.max() / 1.5 if normalize else cm.max() / 2
+    for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+        if normalize:
+            plt.text(j, i, "{:0.4f}".format(cm[i, j]),
+                     horizontalalignment="center",
+                     color="white" if cm[i, j] > thresh else "black")
+        else:
+            plt.text(j, i, "{:,}".format(cm[i, j]),
+                     horizontalalignment="center",
+                     color="white" if cm[i, j] > thresh else "black")
+
+    plt.tight_layout()
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label\naccuracy={:0.4f}; misclass={:0.4f}'.format(accuracy, misclass))
+    plt.show()
 
 
 
 
 
 
+
+
+
+
+
+
+
+
+
+"""
+#Relative Feature Importance, been updated to just feature importance
+def plotimportances(fitdata, gene_data, num_features, method):
+    feature_importance = fitdata
+    feature_importance = 100.0 * (feature_importance / feature_importance.max())
+    sorted_idx = np.argsort(feature_importance)
+    sorted_idx = sorted_idx[-int(num_features):-1:1]
+    pos = np.arange(sorted_idx.shape[0]) + .5
+    plt.barh(pos, feature_importance[sorted_idx], align='center')
+    plt.yticks(pos, gene_data.columns[sorted_idx])
+    plt.xlabel('Relative Importance')
+    plt.title('Feature Importance: '+method, fontsize=30)
+    plt.tick_params(axis='x', which='major', labelsize=15)
+    sns.despine(left=True, bottom=True)
+    plt.show()
+"""
+
+
+
+
+
+
+
+"""
+    labels = model.classes_
+    cm = multilabel_confusion_matrix(y_test, pred)
+    print(cm)
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    cax = ax.matshow(cm)
+    plt.title('Confusion matrix of the classifier')
+    fig.colorbar(cax)
+    ax.set_xticklabels([''] + labels)
+    ax.set_yticklabels([''] + labels)
+    plt.xlabel('Predicted')
+    plt.ylabel('True')
+    plt.show()
+"""
 
 
 
