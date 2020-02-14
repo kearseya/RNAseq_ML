@@ -32,6 +32,10 @@ Example cross-validation (var -> uni, 500 features):
 * RFC Scores:   [0.72727273 0.80952381 0.78947368 0.78947368 0.78947368]
 * Accuracy:     0.78 (+/- 0.06)
 
+
+Validation curve:
+![validation curve example](/figs/validation_curve_eample.png)
+
 Feature LR and RFC scores are visualised at the end:
 ![cross validation scores example](/figs/cross_val_graph.png)
 
