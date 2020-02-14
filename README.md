@@ -33,7 +33,7 @@ Example cross-validation (var -> uni, 500 features):
 * Accuracy:     0.78 (+/- 0.06)
 
 
-Multilabel confusion matrix:
+Multilabel confusion matrix (normalised for true data):
 ![MlCM](/figs/multilabel_confusion_matrix.png)
 
 Validation curve:
