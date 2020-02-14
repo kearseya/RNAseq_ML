@@ -34,7 +34,7 @@ Example cross-validation (var -> uni, 500 features):
 
 
 Validation curve:
-![validation curve example](/figs/validation_curve_eample.png)
+![validation curve example](/figs/validation_curve_example.png)
 
 Feature LR and RFC scores are visualised at the end:
 ![cross validation scores example](/figs/cross_val_graph.png)
