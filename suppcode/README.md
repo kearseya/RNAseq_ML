@@ -1,3 +1,10 @@
+## Learning curve
+
+Exmperimental learning curve:
+
+![learning curve](/figs/learning_curve_example_needsfix.png)
+
+
 ## Comparing reduction
 
 Authors: Robert McGibbon, Joel Nothman
