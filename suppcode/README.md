@@ -2,7 +2,7 @@
 
 Exmperimental learning curve (*NB needs correcting*):
 
-![learning curve](/figs/learning_curve_example_unbias.png)
+![learning curve](/figs/learning_curve_example_unbias.png.png)
 
 
 ## Comparing reduction
