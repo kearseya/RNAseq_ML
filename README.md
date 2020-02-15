@@ -34,7 +34,7 @@ Multilabel confusion matrix (normalised for true data):
 ![MlCM](/figs/multilabel_confusion_matrix_unbias.png)
 
 Validation curve:
-![validation curve example](/figs/validation_curve_example.png)
+![validation curve example](/figs/validation_curve_example_unbias.png)
 
 Feature cross validation scores are visualised in order of method used for feature selection at the end:
 ![cross validation scores example](/figs/cross_val_graph_progress_through_methods.png)
