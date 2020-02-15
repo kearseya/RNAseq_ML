@@ -31,13 +31,13 @@ Also PCA analysis
 
 
 Multilabel confusion matrix (normalised for true data):
-![MlCM](/figs/multilabel_confusion_matrix.png)
+![MlCM](/figs/multilabel_confusion_matrix_unbias.png)
 
 Validation curve:
 ![validation curve example](/figs/validation_curve_example.png)
 
 Feature LR and RFC scores are visualised at the end:
-![cross validation scores example](/figs/cross_val_graph.png)
+![cross validation scores example](/figs/cross_val_graph_progress_through_methods.png)
 
 For the correlation filter, a heatmap is generated:
 ![heatplot example](/figs/correlation_matrix_example.png)
