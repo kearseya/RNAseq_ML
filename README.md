@@ -20,7 +20,8 @@ To run:
 Mehods include:
 * Removing low variance
 * Univariate filter
-* Correlation filter
+* High correlated features filter
+* Low target correlation filter
 * Recursive feature elimination
 * Feature selection from model
 * Tree based selection
