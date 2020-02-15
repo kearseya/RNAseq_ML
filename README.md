@@ -32,10 +32,10 @@ Mehods include:
 Also PCA analysis
 
 
-Multilabel confusion matrix (normalised for true data):
+Multilabel confusion matrix (normalised for true data):  
 ![MlCM](/figs/multilabel_confusion_matrix_unbias.png)
 
-Validation curve:
+Validation curve:  
 ![validation curve example](/figs/validation_curve_example_unbias.png)
 
 Feature cross validation scores are visualised in order of method used for feature selection at the end:
