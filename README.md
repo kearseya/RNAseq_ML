@@ -30,11 +30,6 @@ Mehods include:
 Also PCA analysis
 
 
-Example cross-validation (var -> uni, 500 features): 
-* RFC Scores:   [0.72727273 0.80952381 0.78947368 0.78947368 0.78947368]
-* Accuracy:     0.78 (+/- 0.06)
-
-
 Multilabel confusion matrix (normalised for true data):
 ![MlCM](/figs/multilabel_confusion_matrix.png)
 
