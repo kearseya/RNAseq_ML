@@ -7,6 +7,8 @@ https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE54460
 https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE54460&format=file&file=GSE54460%5FFPKM%2Dgenes%2DTopHat2%2D106samples%2D12%2D4%2D13%2Etxt%2Egz
 
 
+A large number of Gleason score 7s (80/105 -> 10/35) have been temp removed as they were causing bias.
+
 ## Next step is to use the sklearn pipeline functions and hyperparameter finding
 
 Manual methods script for initial investigation of a few methods, sklearn submodule pipeline has wider functionality. Hyperparameters also need to be found to make model more optimal.
