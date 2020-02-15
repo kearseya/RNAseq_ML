@@ -36,11 +36,11 @@ Multilabel confusion matrix (normalised for true data):
 Validation curve:
 ![validation curve example](/figs/validation_curve_example.png)
 
-Feature LR and RFC scores are visualised at the end:
+Feature cross validation scores are visualised in order of method used for feature selection at the end:
 ![cross validation scores example](/figs/cross_val_graph_progress_through_methods.png)
 
-For the correlation filter, a heatmap is generated:
+For the high correlation filter, a heatmap is generated:
 ![heatplot example](/figs/correlation_matrix_example.png)
 
-Feature importance is also extracted and plotted at some steps:
+Feature importance is also extracted and plotted at each step:
 ![relative feature importance example](/figs/feature_importance_example.png)
