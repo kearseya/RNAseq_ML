@@ -6,7 +6,7 @@ import seaborn as sns
 
 import sklearn
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import accuracy_score, classification_report, recall_score
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.pipeline import Pipeline
 from sklearn import feature_selection
@@ -30,33 +30,45 @@ check_missing_val(genedata)
 #plotimportances(initial_rank(genedata, gleasonscores), genedata, 40, "Initial")
 
 #split data into test and training data
-gene_train, gene_test, gleason_train, gleason_test = train_test_split(genedata, gleasonscores, test_size=0.25)
+gene_train, gene_test, gleason_train, gleason_test = train_test_split(genedata, gleasonscores, test_size=0.20)
 
 #print(gene_train)#print(gene_test)#print(gleason_train)#print(gleason_test)
 
-gene_train_filt, gleason_train = variance_filter(gene_train, gleason_train)
-gene_train_filt, gleason_train = univariate_filter(gene_train_filt, gleason_train)
-gene_train_filt, gleason_train = correlation_filter(gene_train_filt, gleason_train)
-gene_train_filt, gleason_train = recursive_feature_elimination(gene_train_filt, gleason_train)
-gene_train_filt, gleason_train = feature_select_from_model(gene_train_filt, gleason_train)
+gene_train_filt, gleason_train = variance_filter(gene_train, gleason_train, var_thresh=0.0)
+gene_train_filt, gleason_train = univariate_filter(gene_train_filt, gleason_train, k_val=1000)
+gene_train_filt, gleason_train = correlation_filter(gene_train_filt, gleason_train, corr_thresh=0.75)
+gene_train_filt, gleason_train = corrlation_with_target(gene_train_filt, gleason_train, corr_thresh=0.1)
+gene_train_filt, gleason_train = recursive_feature_elimination(gene_train_filt, gleason_train, n_feat=None)
+gene_train_filt, gleason_train = feature_select_from_model(gene_train_filt, gleason_train, thresh=None)
 #PCA_analysis(gene_train_filt, gleason_train, 3)
-gene_train_filt, gleason_train = tree_based_selection(gene_train_filt, gleason_train)
-gene_train_filt, gleason_train = L1_based_select(gene_train_filt, gleason_train)
+gene_train_filt, gleason_train = tree_based_selection(gene_train_filt, gleason_train, thresh=None)
+#gene_train_filt, gleason_train = L1_based_select(gene_train_filt, gleason_train, thresh=None)
 
 #cop and paste down here order:
 
 
+predict_null_accuracy(gleasonscores)
 
 
-base_rfc = RandomForestClassifier(n_estimators = 100) #, max_features=None)
+base_rfc = RandomForestClassifier(n_estimators = 100, random_state=42) #, max_features=None)
 base_rfc.fit(gene_train, gleason_train['Gleason'] )
 base_rfc_predictions = base_rfc.predict(gene_test)
 print("Base RFC accuracy:   ", accuracy_score(gleason_test, base_rfc_predictions))
-print("Base RFC class rep:", classification_report(gleason_test, base_rfc_predictions))
+print("Base RFC class rep:")
+print(classification_report(gleason_test, base_rfc_predictions, zero_division=1))
+
+print("Cross validating")
+rfc_scores = cross_val_score(base_rfc, genedata, gleasonscores['Gleason'], cv=5, verbose=True, scoring='accuracy')
+print("RFC Scores:  ", rfc_scores)
+print("Accuracy:    %0.2f (+/- %0.2f)" % (rfc_scores.mean(), rfc_scores.std() * 2))
+
+#print("Base RFC sensitivity: ", recall_score(gleason_test['Gleason'], base_rfc_predictions,  average='samples'))
 print("Base Num features:   ", base_rfc.n_features_)
 #print("Num classes:         ", base_rfc.n_classes_)
 #print("Num outputs:         ", base_rfc.n_outputs_)
 #vis_trees(base_rfc, "base")
+
+
 
 def filter_data():
     global gene_train
@@ -77,13 +89,21 @@ print("Train gene shape:    ", gene_train.shape)
 def model_accuracy():
     print("\n=====================================================\n")
     #Random Forest Classifier
-    rfc = RandomForestClassifier(n_estimators=8) #value from validation curve, check with hyperparameters
+    rfc = RandomForestClassifier(n_estimators=100, random_state=42) #value from validation curve, check with hyperparameters
     global rfc_fit
     rfc_fit = rfc.fit(gene_train, gleason_train['Gleason'])
     global rfc_predictions
     rfc_predictions = rfc_fit.predict(gene_test)
     print("RFC accuracy:    ", accuracy_score(gleason_test['Gleason'], rfc_predictions))
-    print("RFC class rep:", classification_report(gleason_test['Gleason'], rfc_predictions))
+    print("RFC classification report:")
+    print(classification_report(gleason_test['Gleason'], rfc_predictions, zero_division=1))
+
+    print("Cross validating")
+    rfc_scores = cross_val_score(rfc, genedata[list(gene_train_filt.columns.values)], gleasonscores['Gleason'], cv=5, verbose=True, scoring='accuracy')
+    print("RFC Scores:  ", rfc_scores)
+    print("Accuracy:    %0.2f (+/- %0.2f)" % (rfc_scores.mean(), rfc_scores.std() * 2))
+
+    #print("RFC sensitivity: ", recall_score(gleason_test['Gleason'], rfc_predictions, average='samples'))
     print("Num features:    ", rfc.n_features_)
     #print("Num classes:     ", rfc.n_classes_)
     #print("Num outputs:     ", rfc.n_outputs_)
