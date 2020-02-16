@@ -11,12 +11,13 @@ import sklearn
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor, ExtraTreesClassifier
 from sklearn import feature_selection
 from sklearn.inspection import permutation_importance
-from sklearn.model_selection import cross_validate, cross_val_score
+from sklearn.model_selection import cross_validate, cross_val_score, learning_curve,validation_curve
 from sklearn.svm import LinearSVC
 from sklearn.decomposition import PCA
+
 from sklearn.tree import export_graphviz
 from subprocess import call
-from sklearn.metrics import multilabel_confusion_matrix
+from sklearn.metrics import multilabel_confusion_matrix, plot_confusion_matrix
 
 #import sklearn.neural_network
 #from sklearn.linear_model import LogisticRegression
@@ -97,10 +98,9 @@ all_gene_names = list(genedata.columns.values)
 
 
 def predict_null_accuracy(gleason_score):
+    print("\n=====================================================\n")
     null_acc = (gleason_score['Gleason'].value_counts().head(1)/len(gleason_score['Gleason']))
     print("Null accurancy score:    ", null_acc)
-
-predict_null_accuracy(gleasonscores)
 
 
 def check_missing_val(genedata):
@@ -264,8 +264,8 @@ def correlation_filter(gene_data, gleason_score, corr_thresh=0.8):
     #print(corr_matrix['Gleason'].sort_values(ascending=False).head(10))
     #plot correlation matrix
     matrix = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(np.bool))
-    #sns.heatmap(matrix)
-    #plt.show()
+    sns.heatmap(matrix)
+    plt.show()
 
     #find index of feature columns with high correlation
     to_drop = [column for column in matrix.columns if any(matrix[column] > corr_thresh)]
@@ -607,15 +607,13 @@ def visualise_accuracy_methodlog():
     ax = fig.add_subplot(111)
     rects1 = ax.bar(ind, tuple(rfc_accuracy), width, color='royalblue', yerr=tuple(rfc_error))
     #rects2 = ax.bar(ind+width, tuple(rfr_accuracy), width, color='seagreen', yerr=tuple(rfr_error))
-    # add some
     ax.set_ylabel('Accuracy')
     ax.set_title('Cross validation scores\n for RFC')
     ax.set_xticks(ind) #+ width / 2)
     ax.set_xticklabels(tuple(methodorder))
-
     #ax.legend( (rects1[0]), ('Random Forest Classifier') ) #, rects2[0]), ('Logistic Regression', 'Random Forest Classifier') )
-
     plt.show()
+
 
 
 def vis_trees(model, name):
@@ -628,7 +626,93 @@ def vis_trees(model, name):
 
 
 
+def val_curve_gen(gene_data, gleason_score):
+    # Create range of values for parameter
+    param_range = np.arange(1, 250, 2)
+    # Calculate accuracy on training and test set using range of parameter values
+    train_scores, test_scores = validation_curve(RandomForestClassifier(),
+        gene_data, gleason_score['Gleason'], param_name='n_estimators',
+        param_range=param_range, cv=5, scoring='accuracy', n_jobs=-1)
+    # Calculate mean and standard deviation for training set scores
+    train_mean = np.mean(train_scores, axis=1)
+    train_std = np.std(train_scores, axis=1)
+    # Calculate mean and standard deviation for test set scores
+    test_mean = np.mean(test_scores, axis=1)
+    test_std = np.std(test_scores, axis=1)
+    # Plot mean accuracy scores for training and test sets
+    plt.plot(param_range, train_mean, label="Training score", color="red")
+    plt.plot(param_range, test_mean, label="Cross-validation score", color="green")
+    # Plot accurancy bands for training and test sets
+    plt.fill_between(param_range, train_mean - train_std, train_mean + train_std, color="gray")
+    plt.fill_between(param_range, test_mean - test_std, test_mean + test_std, color="gainsboro")
+    # Create plot
+    plt.title("Validation Curve With Random Forest Classifier")
+    plt.xlabel("Number Of Trees")
+    plt.ylabel("Accuracy Score")
+    plt.tight_layout()
+    plt.legend(loc="best")
+    plt.show()
 
+
+
+def plot_learning_curve(estimator, gene_data, gleason_score, ylim=None, cv=None,
+                    n_jobs=1, train_sizes=np.linspace(.1, 1.0, 5)):
+    plt.figure()
+    plt.title("Learning curve for Random Forest Classifier")
+    if ylim is not None:
+        plt.ylim(*ylim)
+    plt.xlabel("Training examples")
+    plt.ylabel("Score")
+    train_sizes, train_scores, test_scores = learning_curve(
+        estimator, gene_data, gleason_score['Gleason'], cv=cv, n_jobs=n_jobs, train_sizes=train_sizes)
+    train_scores_mean = np.mean(train_scores, axis=1)
+    train_scores_std = np.std(train_scores, axis=1)
+    test_scores_mean = np.mean(test_scores, axis=1)
+    test_scores_std = np.std(test_scores, axis=1)
+    plt.grid()
+
+    plt.fill_between(train_sizes, train_scores_mean - train_scores_std,
+            train_scores_mean + train_scores_std, alpha=0.1, color="r")
+    plt.fill_between(train_sizes, test_scores_mean - test_scores_std,
+            test_scores_mean + test_scores_std, alpha=0.1, color="g")
+    plt.plot(train_sizes, train_scores_mean, 'o-', color="r",
+            label="Training score")
+    plt.plot(train_sizes, test_scores_mean, 'o-', color="g",
+            label="Cross-validation score")
+
+    plt.legend(loc="best")
+    plt.show()
+
+
+
+
+
+
+
+
+
+
+
+"""
+#Relative Feature Importance, been updated to just feature importance
+def plotimportances(fitdata, gene_data, num_features, method):
+    feature_importance = fitdata
+    feature_importance = 100.0 * (feature_importance / feature_importance.max())
+    sorted_idx = np.argsort(feature_importance)
+    sorted_idx = sorted_idx[-int(num_features):-1:1]
+    pos = np.arange(sorted_idx.shape[0]) + .5
+    plt.barh(pos, feature_importance[sorted_idx], align='center')
+    plt.yticks(pos, gene_data.columns[sorted_idx])
+    plt.xlabel('Relative Importance')
+    plt.title('Feature Importance: '+method, fontsize=30)
+    plt.tick_params(axis='x', which='major', labelsize=15)
+    sns.despine(left=True, bottom=True)
+    plt.show()
+"""
+
+
+
+"""
 def multilabel_confusion_plot(model, y_test, pred): #redundent after update
     target_names = list(model.classes_)
     print(target_names)
@@ -668,42 +752,9 @@ def multilabel_confusion_plot(model, y_test, pred): #redundent after update
 
     plt.tight_layout()
     plt.ylabel('True label')
-    plt.xlabel('Predicted label\naccuracy={:0.4f}; misclass={:0.4f}'.format(accuracy, misclass))
-    plt.show()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-"""
-#Relative Feature Importance, been updated to just feature importance
-def plotimportances(fitdata, gene_data, num_features, method):
-    feature_importance = fitdata
-    feature_importance = 100.0 * (feature_importance / feature_importance.max())
-    sorted_idx = np.argsort(feature_importance)
-    sorted_idx = sorted_idx[-int(num_features):-1:1]
-    pos = np.arange(sorted_idx.shape[0]) + .5
-    plt.barh(pos, feature_importance[sorted_idx], align='center')
-    plt.yticks(pos, gene_data.columns[sorted_idx])
-    plt.xlabel('Relative Importance')
-    plt.title('Feature Importance: '+method, fontsize=30)
-    plt.tick_params(axis='x', which='major', labelsize=15)
-    sns.despine(left=True, bottom=True)
+    plt.xlabel('Predicted labelaccuracy={:0.4f}; misclass={:0.4f}'.format(accuracy, misclass))
     plt.show()
 """
-
-
-
 
 
 

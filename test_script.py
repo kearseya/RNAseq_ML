@@ -10,10 +10,9 @@ from sklearn.metrics import accuracy_score, classification_report, recall_score
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.pipeline import Pipeline
 from sklearn import feature_selection
-from sklearn.model_selection import cross_validate, cross_val_score
+from sklearn.model_selection import cross_validate, cross_val_score, learning_curve, validation_curve
 from sklearn.decomposition import PCA
 
-from sklearn.model_selection import validation_curve
 from sklearn.tree import export_graphviz
 from subprocess import call
 from sklearn.metrics import multilabel_confusion_matrix, plot_confusion_matrix
@@ -25,7 +24,7 @@ from sklearn.metrics import multilabel_confusion_matrix, plot_confusion_matrix
 from methods_functions import *
 
 
-
+predict_null_accuracy(gleasonscores)
 check_missing_val(genedata)
 #plotimportances(initial_rank(genedata, gleasonscores), genedata, 40, "Initial")
 
@@ -44,10 +43,10 @@ gene_train_filt, gleason_train = feature_select_from_model(gene_train_filt, glea
 gene_train_filt, gleason_train = tree_based_selection(gene_train_filt, gleason_train, thresh=None)
 #gene_train_filt, gleason_train = L1_based_select(gene_train_filt, gleason_train, thresh=None)
 
-#cop and paste down here order:
+#copy and paste down here order:
 
 
-predict_null_accuracy(gleasonscores)
+
 
 
 base_rfc = RandomForestClassifier(n_estimators = 100, random_state=42) #, max_features=None)
@@ -99,7 +98,7 @@ def model_accuracy():
     print(classification_report(gleason_test['Gleason'], rfc_predictions, zero_division=1))
 
     print("Cross validating")
-    rfc_scores = cross_val_score(rfc, genedata[list(gene_train_filt.columns.values)], gleasonscores['Gleason'], cv=5, verbose=True, scoring='accuracy')
+    rfc_scores = cross_val_score(rfc, genedata[features_selected], gleasonscores['Gleason'], cv=5, verbose=True, scoring='accuracy')
     print("RFC Scores:  ", rfc_scores)
     print("Accuracy:    %0.2f (+/- %0.2f)" % (rfc_scores.mean(), rfc_scores.std() * 2))
 
@@ -113,56 +112,43 @@ def model_accuracy():
 
 model_accuracy()
 
-# print("Plotting decision trees")
-#vis_trees(rfc_fit, "fit")
-print("Plotting confusion")
-plot_confusion_matrix(rfc_fit, genedata[features_selected], gleasonscores, normalize='true').ax_.set_title("Multilabel Confusion Matrix")
-#multilabel_confusion_plot(rfc_fit, gleason_test['Gleason'], rfc_predictions) #redundent after update
-
 
 print("Method Log")
 print(methodlog)
 
+
+print("\n=====================================================\n")
+
+print("Visualise cross validation scores methodlog\n")
 visualise_accuracy_methodlog()
 
 
+print("Plotting confusion matrix\n")
+plot_confusion_matrix(rfc_fit, genedata[features_selected], gleasonscores['Gleason'], normalize='true').ax_.set_title("Multilabel Confusion Matrix")
+plt.show()
+#multilabel_confusion_plot(rfc_fit, gleason_test['Gleason'], rfc_predictions) #redundent after update
 
-def val_curve_gen(gene_data, gleason_score):
-    # Create range of values for parameter
-    param_range = np.arange(1, 250, 2)
-    # Calculate accuracy on training and test set using range of parameter values
-    train_scores, test_scores = validation_curve(RandomForestClassifier(),
-        gene_data, gleason_score['Gleason'], param_name='n_estimators',
-        param_range=param_range, cv=5, scoring='accuracy', n_jobs=-1)
-    # Calculate mean and standard deviation for training set scores
-    train_mean = np.mean(train_scores, axis=1)
-    train_std = np.std(train_scores, axis=1)
-    # Calculate mean and standard deviation for test set scores
-    test_mean = np.mean(test_scores, axis=1)
-    test_std = np.std(test_scores, axis=1)
-    # Plot mean accuracy scores for training and test sets
-    plt.plot(param_range, train_mean, label="Training score", color="red")
-    plt.plot(param_range, test_mean, label="Cross-validation score", color="green")
-    # Plot accurancy bands for training and test sets
-    plt.fill_between(param_range, train_mean - train_std, train_mean + train_std, color="gray")
-    plt.fill_between(param_range, test_mean - test_std, test_mean + test_std, color="gainsboro")
-    # Create plot
-    plt.title("Validation Curve With Random Forest Classifier")
-    plt.xlabel("Number Of Trees")
-    plt.ylabel("Accuracy Score")
-    plt.tight_layout()
-    plt.legend(loc="best")
-    plt.show()
 
-#val_curve_gen(genedata, gleasonscores)
+print("Plotting validation curve\n")
+val_curve_gen(genedata[features_selected], gleasonscores)
 
-#val_curve_gen(gene_train, gleason_train)
+
+print("Plotting learning curve\n")
+plot_learning_curve(RandomForestClassifier(), genedata[features_selected], gleasonscores)
+
+
+print("Plotting decision trees\n")
+vis_trees(RandomForestClassifier(n_estimators=100, random_state=42).fit(gene_train, gleason_train['Gleason']), "fit")
+
+
+
 
 
 
 
 #from literature
 #features_selected = ["BTG2", "IGFBP3", "SIRT1", "MXI1", "FDPS"]
+
 
 """
 #values from experimental hyperparameter search
