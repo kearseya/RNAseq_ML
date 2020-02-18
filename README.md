@@ -33,16 +33,16 @@ Also PCA analysis
 
 
 Multilabel confusion matrix (normalised for true data):  
-![MlCM](/figs/multilabel_confusion_matrix_unbias.png)
+![MlCM](/example_figs/multilabel_confusion_matrix_unbias.png)
 
 Validation curve:  
-![validation curve example](/figs/validation_curve_example_unbias.png)
+![validation curve example](/example_figs/validation_curve_example_unbias.png)
 
 Feature cross validation scores are visualised in order of method used for feature selection at the end:
-![cross validation scores example](/figs/cross_val_graph_progress_through_methods.png)
+![cross validation scores example](/example_figs/cross_val_graph_progress_through_methods.png)
 
 For the high correlation filter, a heatmap is generated:
-![heatplot example](/figs/correlation_matrix_example.png)
+![heatplot example](/example_figs/correlation_matrix_example.png)
 
 Feature importance is also extracted and plotted at each step:
-![relative feature importance example](/figs/feature_importance_example.png)
+![relative feature importance example](/example_figs/feature_importance_example.png)
