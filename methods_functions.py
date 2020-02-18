@@ -156,6 +156,7 @@ def plot_perm_importances(model, gene_data, gleason_score, method, setname):
 
 
 def variance_filter(gene_data, gleason_score, var_thresh=0.0, imp_plot="save"):
+    #INFORMATION
     print("\n=====================================================\n")
     method = "Variance filter"
     #remove features with low variance
@@ -205,6 +206,7 @@ def variance_filter(gene_data, gleason_score, var_thresh=0.0, imp_plot="save"):
 
 
 def univariate_filter(gene_data, gleason_score, k_val=1000, imp_plot="save"):
+    #STATISTIC
     print("\n=====================================================\n")
     method = "Univariate feature selection"
     #univariate feature selection
@@ -259,6 +261,7 @@ def univariate_filter(gene_data, gleason_score, k_val=1000, imp_plot="save"):
 
 
 def correlation_filter(gene_data, gleason_score, corr_thresh=0.8, imp_plot="save"):
+    #PREDICTIVE
     print("\n=====================================================\n")
     method = "High correlation filter"
     #mergedset = pd.merge(gene_data, gleason_score.reset_index(), left_index=True, right_index=True)
@@ -307,6 +310,7 @@ def correlation_filter(gene_data, gleason_score, corr_thresh=0.8, imp_plot="save
 
 
 def corrlation_with_target(gene_data, gleason_score, corr_thresh=0.05, imp_plot="save"):
+    #PREDICTIVE
     print("\n=====================================================\n")
     method = "Target correlation filter"
     print(method, " (threshold: ", str(corr_thresh),")")
@@ -352,7 +356,8 @@ def corrlation_with_target(gene_data, gleason_score, corr_thresh=0.05, imp_plot=
 
 
 
-def recursive_feature_elimination(gene_data, gleason_score, n_feat=None, imp_plot="save"):
+def recursive_feature_elimination(gene_data, gleason_score, n_feat=None, step_val=1, imp_plot="save"):
+    #GREEDY
     print("\n=====================================================\n")
     method = "Recursive feature elimination"
     #recursive feature elimination
@@ -362,7 +367,7 @@ def recursive_feature_elimination(gene_data, gleason_score, n_feat=None, imp_plo
     rfc = RandomForestClassifier(n_estimators=100, random_state=42)
     #feature extraction
     print("Feature extraction")
-    rfe = feature_selection.RFE(rfc, n_features_to_select=n_feat) #, verbose=True)
+    rfe = feature_selection.RFE(rfc, n_features_to_select=n_feat, step=step_val) #, verbose=True)
     #fit on train set and transform
     print("Fitting and Transforming")
     RFE_features = rfe.fit_transform(gene_data, gleason_score['Gleason'])
@@ -407,6 +412,7 @@ def recursive_feature_elimination(gene_data, gleason_score, n_feat=None, imp_plo
 
 
 def feature_select_from_model(gene_data, gleason_score, thresh=None, imp_plot="save"):
+    #MODEL
     print("\n=====================================================\n")
     method = "Model feature select"
     t1 = time.time()
@@ -462,6 +468,7 @@ def feature_select_from_model(gene_data, gleason_score, thresh=None, imp_plot="s
 
 
 def tree_based_selection(gene_data, gleason_score, thresh=None, imp_plot="save"):
+    #MODEL
     print("\n=====================================================\n")
     method = "Tree based selection"
     #tree based selection
@@ -514,6 +521,7 @@ def tree_based_selection(gene_data, gleason_score, thresh=None, imp_plot="save")
 
 
 def L1_based_select(gene_data, gleason_score, thresh=None, imp_plot="save"):
+    #MODEL
     print("\n=====================================================\n")
     method = "L1-based selection"
     print(method, " (threshold: ", str(thresh),")")
@@ -565,8 +573,18 @@ def L1_based_select(gene_data, gleason_score, thresh=None, imp_plot="save"):
 #gene_data, gleason_score = L1_based_select(gene_data, gleason_score)
 
 
+
+
+
+
+
+
+
+
+
 #still not sure, needs fixing, works in pipeline
 def PCA_analysis(gene_data, gleason_score, n_comp):
+    #REDUNDANCY
     print("\n=====================================================\n")
     method = "PCA analysis"
     # pca - keep 90% of variance
@@ -646,9 +664,106 @@ def basic_method_iteration(gene_train, gleason_train):
                     if fun == univariate_filter:
                         if v < len(list(gene_train_filt.columns.values)):
                             gene_train_filt_temp, gleason_train = fun(gene_train_filt, gleason_train, v, imp_plot=False)
-                            methodlog.append({"method": func_meth_index[fun], "threshold": 0, "size": len(list(gene_train_filt.columns.values)), "removed": 0, "rfc_scores": [0,0,0,0,0]})
-                            print("SKIPPING")
-                            next(iter(func_to_do))
+                    else:
+                        gene_train_filt_temp, gleason_train = fun(gene_train_filt, gleason_train, v, imp_plot=False)
+            if x == len(func_to_do)-1:
+                print("\n\n\nROUND", i, "FINISHED\n\n\n")
+                optcheck.append(methodlog)
+                print(len(optcheck), len(optcheck[i]))
+                methodlog = []
+                for method in optcheck[i]:
+                    print("\n=====================================================\n")
+                    print("Checking method: ", optcheck[i].index(method), "/", len(optcheck[i])-1, i, method['method'], method['threshold'])
+                    tempscore = np.mean(method['rfc_scores'])
+                    tempvar = np.std(method['rfc_scores'])*2
+                    print("Score: ", tempscore, " Var: ", tempvar)
+                    print("Removed: ", method['removed'])
+                    if tempscore > topscore and tempvar <= topvar+(tempscore-topscore):
+                        topscore = tempscore.copy()
+                        topvar = tempvar.copy()
+                        topmethodlog = method.copy()
+                        topnfun = i
+                        print("Current best!!")
+                    if optcheck[i].index(method) == len(optcheck[i])-1:
+                        print("First:", topnfun, i)
+                        if topnfun == i:
+                            print("Second:", topnfun, i)
+                            gene_train_filt, gleason_train = meth_func_index[topmethodlog['method']](gene_train_filt, gleason_train, topmethodlog['threshold'])
+                            opttaken.append(topmethodlog)
+                            print("\n=====================================================\n")
+                            print("\n\n\n\nTOP METHOD:  ", topmethodlog['method'], "\n")
+                            print("TOP SCORE:   ", topscore, " BEST VAR:    ", topvar, "\n")
+                            if i != 0:
+                                print("Improvement: ", topscore-np.mean(opttaken[i-1]['rfc_scores']), "              ", topvar-(np.std(opttaken[i-1]['rfc_scores'])*2), "\n")
+                            print("Removed:     ", topmethodlog['removed'], "New size:   ", topmethodlog['size'], "\n")
+                            print("Route:       ", [(order['method'], order['threshold']) for order in opttaken], "\n\n\n\n")
+                            print("\n=====================================================\n")
+                            if topmethodlog['method'] != "Recursive feature elimination":
+                                done_list.append(meth_func_index[topmethodlog['method']])
+                        else:
+                            print("\n=====================================================\n")
+                            print("\n\n\n\nDIDN'T BEAT LAST ROUND")
+                            print("Total number of rounds: ", topnfun, "\n")
+                            print("TOP SCORE:   ", topscore, " BEST VAR:    ", topvar, "\n")
+                            print("Removed:     ", len(genedata.columns.values)-len(gene_train_filt.columns.values), "New size:   ", topmethodlog['size'], "\n")
+                            print("Route:       ", [(order['method'], order['threshold']) for order in opttaken], "\n\n\n\n")
+                            print("\n=====================================================\n")
+                            return gene_train_filt, opttaken
+
+
+
+
+
+
+
+
+
+
+
+def split_method_iteration(gene_train, gleason_train):
+    global methodlog
+    info_func_list = [variance_filter,#(gene_train, gleason_train, var_thresh=0.0)
+                      univariate_filter]#(gene_train_filt, gleason_train, k_val=1000)
+    corr_func_list = [correlation_filter,#(gene_train_filt, gleason_train, corr_thresh=0.75)
+                      corrlation_with_target]#(gene_train_filt, gleason_train, corr_thresh=0.1)
+    gred_func_list = [recursive_feature_elimination]#(gene_train_filt, gleason_train, n_feat=None)
+    modl_func_list = [feature_select_from_model,#(gene_train_filt, gleason_train, thresh=None)
+                      tree_based_selection,#(gene_train_filt, gleason_train, thresh=None)
+                      L1_based_select]#(gene_train_filt, gleason_train, thresh=None)
+    list_list = [info_func_list, corr_func_list, gred_func_list, modl_func_list]
+    meth_func_index = {"Variance filter":variance_filter, "Univariate feature selection":univariate_filter, "High correlation filter":correlation_filter,
+                        "Target correlation filter":corrlation_with_target, "Recursive feature elimination":recursive_feature_elimination,
+                        "Model feature select":feature_select_from_model, "Tree based selection":tree_based_selection, "L1-based selection":L1_based_select}
+    func_meth_index = {variance_filter:"Variance filter", univariate_filter:"Univariate feature selection", correlation_filter:"High correlation filter",
+                        corrlation_with_target:"Target correlation filter", recursive_feature_elimination:"Recursive feature elimination",
+                        feature_select_from_model:"Model feature select", tree_based_selection:"Tree based selection", L1_based_select:"L1-based selection"}
+    thresholds_dictionary ={variance_filter: np.linspace(0, 0.05, 5), #var_thresh=0.0
+                 univariate_filter: np.linspace(500, 2500, 5, dtype=int), #k_val=1000)
+                 correlation_filter: np.linspace(0.5, 0.9, 9), #corr_thresh=0.75)
+                 corrlation_with_target: np.linspace(0.05, 0.25, 5), #corr_thresh=0.1)
+                 recursive_feature_elimination: [None], #np.linspace(),#n_feat=None)
+                 feature_select_from_model: [None], #np.linspace(), #thresh=None)
+                 tree_based_selection: [None], #np.linspace(): #thresh=None)
+                 L1_based_select: [None]} #np.linspace()} #thresh=None)
+    topnfun, topscore, topvar, skipped = 0, 0, 100, 0
+    gene_train_filt = gene_train.copy()
+    optcheck, opttaken, done_list = [], [], []
+    for i in range(len(list_list)):
+        print("ROUND: ", i)
+        func_to_do = list(set(list_list[i])-set(done_list))
+        for x, fun in enumerate(func_to_do):
+            print("\n=====================================================\n")
+            print("ROUND: ", i)
+            print("METHOD: ", x, func_meth_index[fun])
+            if len(list(gene_train_filt.columns.values)) > 1000 and fun in (correlation_filter, recursive_feature_elimination):
+                methodlog.append({"method": func_meth_index[fun], "threshold": 0, "size": len(list(gene_train_filt.columns.values)), "removed": 0, "rfc_scores": [0,0,0,0,0]})
+                print("SKIPPING")
+                next(iter(func_to_do))
+            else:
+                for v in thresholds_dictionary[fun]:
+                    if fun == univariate_filter:
+                        if v < len(list(gene_train_filt.columns.values)):
+                            gene_train_filt_temp, gleason_train = fun(gene_train_filt, gleason_train, v, imp_plot=False)
                     else:
                         gene_train_filt_temp, gleason_train = fun(gene_train_filt, gleason_train, v, imp_plot=False)
             if x == len(func_to_do)-1:
@@ -684,15 +799,29 @@ def basic_method_iteration(gene_train, gleason_train):
                             if topmethodlog['method'] != "Recursive feature elimination":
                                 done_list.append(meth_func_index[topmethodlog['method']])
                         else:
-                            print("\n=====================================================\n")
-                            print("\n\n\n\nDIDN'T BEAT LAST ROUND")
-                            print("Total number of rounds: ", topnfun, "\n")
-                            print("TOP SCORE:   ", topscore, " BEST VAR:    ", topvar, "\n")
-                            print("Removed:     ", len(genedata.columns.values)-len(gene_train_filt.columns.values), "New size:   ", topmethodlog['size'], "\n")
-                            print("Route:       ", [(order['method'], order['threshold']) for order in opttaken], "\n\n\n\n")
-                            print("\n=====================================================\n")
-                            return gene_train_filt, opttaken
+                            if i != len(list_list)-1:
+                                next(iter(list_list))
+                                skipped += 1
+                            if i == len(list_list)-1:
+                                print("\n=====================================================\n")
+                                print("\n\n\n\nDIDN'T BEAT LAST ROUND")
+                                print("Total number of rounds: ", topnfun-skipped, "\n")
+                                print("TOP SCORE:   ", topscore, " BEST VAR:    ", topvar, "\n")
+                                print("Removed:     ", len(genedata.columns.values)-len(gene_train_filt.columns.values), "New size:   ", topmethodlog['size'], "\n")
+                                print("Route:       ", [(order['method'], order['threshold']) for order in opttaken], "\n\n\n\n")
+                                print("\n=====================================================\n")
+                                return gene_train_filt, opttaken
 
+
+
+def evaluate(model, test_features, test_labels):
+    predictions = model.predict(test_features)
+    errors = abs(predictions - test_labels)
+    mape = 100 * np.mean(errors / test_labels)
+    accuracy = 100 - mape
+    print('Model Performance')
+    print('Average Error: {:0.4f} degrees.'.format(np.mean(errors)))
+    print('Accuracy = {:0.2f}%.'.format(accuracy))
 
 
 
@@ -942,4 +1071,57 @@ print("After:   ", str(gene_data.shape[1]), str(np.bool(gene_data.shape[1]==prin
 print("Removed: ", str(before_num_genes-gene_data.shape[1]))
 global methodlog
 methodlog.append({"method": method, "threshold": thresh, "size": gene_data.shape[1], "removed": before_num_genes-gene_data.shape[1], "lr_scores": lr_scores, "rfc_scores": rfc_scores, "lr_acc": lr_scores.mean(), "rfc_acc": rfc_scores.mean(), "lr_err": lr_scores.std()*2, "rfc_err": rfc_scores.std()*2})
+"""
+
+"""
+from mdr import MDR #only supports binary endpoint
+def MDR_select(gene_data, gleason_score, thresh=None, imp_plot="save"):
+    #MODEL
+    print("\n=====================================================\n")
+    method = "MDR selection"
+    print(method, " (threshold: ", str(thresh),")")
+    #lr = LogisticRegression(solver='liblinear', multi_class='auto', max_iter=5000)
+    print("Fitting")
+    t1 = time.time()
+    mdrm = MDR()
+    mdr_fit = mdrm.fit(gene_data, gleason_score['Gleason'])
+    #L1_importances = lsvc.feature_importances_ #not supported with current method
+    #plotimportances(L1_importances, gene_data, len(L1_importances), method)
+    print("Transforming")
+    model_features = mdrm.transform(gene_data)
+
+    gene_names = list(gene_data.columns.values)
+    before_num_genes = gene_data.shape[1]
+    passed_MDR_filter = MDR_model.get_support()
+    print("Before:  ", str(before_num_genes))
+    MDR_filter_genes = []
+    for bool, gene in zip(passed_MDR_filter, gene_names):
+        if bool:
+            MDR_filter_genes.append(gene)
+
+    gene_data = pd.DataFrame(model_features, columns=L1_filter_genes)
+    #gene_data = gene_data.set_index(row_names)
+    print("After:   ", str(gene_data.shape[1]), str(np.bool(gene_data.shape[1]==model_features.shape[1])))
+    print("Removed: ", str(before_num_genes-gene_data.shape[1]))
+
+    rfc = RandomForestClassifier(n_estimators=100, random_state=42)
+    print("Cross validating")
+    #print(cross_validate(rfc, genedata[list(gene_data.columns.values)], gleasonscores['Gleason'], cv=5))
+    rfc_scores = cross_val_score(rfc, genedata[list(gene_data.columns.values)], gleasonscores['Gleason'], cv=5, scoring='accuracy')
+    print("RFC Scores:  ", rfc_scores)
+    print("Accuracy:    %0.2f (+/- %0.2f)" % (rfc_scores.mean(), rfc_scores.std() * 2))
+
+    if imp_plot in ("save", "show"):
+        print("Plotting importances")
+        rfc.fit(gene_data, gleason_score['Gleason'])
+        MDR_importance = rfc.feature_importances_
+        plotimportances(MDR_importance, gene_data, len(list(gene_data.columns.values)), method, thresh, show_meth=imp_plot)
+        if rfc.n_features_ < 50:
+            plot_perm_importances(rfc, gene_data, gleason_score, method, "train")
+
+    global methodlog
+    methodlog.append({"method": method, "threshold": thresh, "size": gene_data.shape[1], "removed": before_num_genes-gene_data.shape[1], "rfc_scores": rfc_scores, "time-taken": time.time()-t1})
+
+    print("\n=====================================================\n")
+    return gene_data, gleason_score
 """

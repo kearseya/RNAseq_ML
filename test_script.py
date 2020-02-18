@@ -19,6 +19,7 @@ from sklearn.decomposition import PCA
 from sklearn.tree import export_graphviz, plot_tree, DecisionTreeClassifier
 from subprocess import call
 from sklearn.metrics import multilabel_confusion_matrix, plot_confusion_matrix
+from sklearn.model_selection import GridSearchCV
 
 #from sklearn.linear_model import LogisticRegression
 #import sklearn.neural_network
@@ -47,9 +48,16 @@ gene_train, gene_test, gleason_train, gleason_test = train_test_split(genedata, 
 #gene_train_filt, gleason_train = L1_based_select(gene_train_filt, gleason_train, thresh=None)
 
 #copy and paste down here order:
+#gene_train_filt, gleason_train = feature_select_from_model(gene_train, gleason_train, thresh=None)
+#gene_train_filt, gleason_train = recursive_feature_elimination(gene_train_filt, gleason_train, n_feat=None)
+#gene_train_filt, gleason_train = recursive_feature_elimination(gene_train_filt, gleason_train, n_feat=None)
+#gene_train_filt, gleason_train = recursive_feature_elimination(gene_train_filt, gleason_train, n_feat=None)
+#gene_train_filt, gleason_train = recursive_feature_elimination(gene_train_filt, gleason_train, n_feat=None)
+
 
 
 gene_train_filt, methodlog = basic_method_iteration(gene_train, gleason_train)
+#gene_train_filt, methodlog = split_method_iteration(gene_train, gleason_train)
 print(methodlog)
 
 
@@ -74,7 +82,7 @@ print("Base Num features:   ", base_rfc.n_features_)
 
 
 
-def filter_data():
+def filter_data(export_data=False):
     global gene_train
     global gene_test
     global features_selected
@@ -84,6 +92,9 @@ def filter_data():
     print(features_selected[1:5])
     gene_train = gene_train[features_selected]
     gene_test = gene_test[features_selected]
+    if export_data == True:
+        data_for_file = pd.merge(genedata[features_selected], gleasonscores, left_index=True, right_index=True)
+        data_for_file.to_csv("features_selected_data.csv", sep=',', index=True)
     print("\n=====================================================\n")
 
 filter_data()
@@ -140,6 +151,50 @@ val_curve_gen(genedata[features_selected], gleasonscores)
 
 print("Plotting learning curve\n")
 plot_learning_curve(RandomForestClassifier(), genedata[features_selected], gleasonscores)
+
+
+
+def hyperparameter_tuning():
+    print("Grid searching:")
+    n_estimators = list(np.arange(10, 150, 2))
+    max_depth = [5, 8, 15, 25, 30]
+    min_samples_split = [2, 5, 10, 15, 100]
+    min_samples_leaf = [1, 2, 5, 10]
+    #bootstrap = [True]#, False]
+
+    hyperF = dict(n_estimators = n_estimators, max_depth = max_depth,
+                  min_samples_split = min_samples_split,
+                 min_samples_leaf = min_samples_leaf)
+
+    gridF = GridSearchCV(RandomForestClassifier(), hyperF, cv = 5, verbose = 1,
+                          n_jobs = -1)
+    bestF = gridF.fit(gene_train, gleason_train['Gleason'])
+
+    best_model = bestF.best_estimator_
+    best_params = bestF.best_params_
+    best_score = bestF.best_score_
+
+    print("Best model:  ", best_model)
+    print("Best params: ", best_params)
+    print("Best Score:  ", best_score)
+
+    evaluate(best_model, gene_test, gleason_test['Gleason'])
+
+    print("Plotting confusion matrix\n")
+    plot_confusion_matrix(best_model, genedata[features_selected], gleasonscores['Gleason'], normalize='true').ax_.set_title("Multilabel Confusion Matrix")
+    plt.show()
+
+    print("Plotting learning curve\n")
+    plot_learning_curve(best_model, genedata[features_selected], gleasonscores)
+
+
+
+
+#hyperparameter_tuning()
+
+
+
+
 
 """
 if len(features_selected) < 40:
