@@ -1,7 +1,10 @@
 import numpy as np
 import pandas as pd
+import itertools
 
+import matplotlib
 import matplotlib.pyplot as plt
+#matplotlib.use('Agg')
 import seaborn as sns
 
 import sklearn
@@ -13,7 +16,7 @@ from sklearn import feature_selection
 from sklearn.model_selection import cross_validate, cross_val_score, learning_curve, validation_curve
 from sklearn.decomposition import PCA
 
-from sklearn.tree import export_graphviz
+from sklearn.tree import export_graphviz, plot_tree, DecisionTreeClassifier
 from subprocess import call
 from sklearn.metrics import multilabel_confusion_matrix, plot_confusion_matrix
 
@@ -33,19 +36,21 @@ gene_train, gene_test, gleason_train, gleason_test = train_test_split(genedata, 
 
 #print(gene_train)#print(gene_test)#print(gleason_train)#print(gleason_test)
 
-gene_train_filt, gleason_train = variance_filter(gene_train, gleason_train, var_thresh=0.0)
-gene_train_filt, gleason_train = univariate_filter(gene_train_filt, gleason_train, k_val=1000)
-gene_train_filt, gleason_train = correlation_filter(gene_train_filt, gleason_train, corr_thresh=0.75)
-gene_train_filt, gleason_train = corrlation_with_target(gene_train_filt, gleason_train, corr_thresh=0.1)
-gene_train_filt, gleason_train = recursive_feature_elimination(gene_train_filt, gleason_train, n_feat=None)
-gene_train_filt, gleason_train = feature_select_from_model(gene_train_filt, gleason_train, thresh=None)
+#gene_train_filt, gleason_train = variance_filter(gene_train, gleason_train, var_thresh=0.0)
+#gene_train_filt, gleason_train = univariate_filter(gene_train_filt, gleason_train, k_val=1000)
+#gene_train_filt, gleason_train = correlation_filter(gene_train_filt, gleason_train, corr_thresh=0.75)
+#gene_train_filt, gleason_train = corrlation_with_target(gene_train_filt, gleason_train, corr_thresh=0.1)
+#gene_train_filt, gleason_train = recursive_feature_elimination(gene_train_filt, gleason_train, n_feat=None)
+#gene_train_filt, gleason_train = feature_select_from_model(gene_train_filt, gleason_train, thresh=None)
 #PCA_analysis(gene_train_filt, gleason_train, 3)
-gene_train_filt, gleason_train = tree_based_selection(gene_train_filt, gleason_train, thresh=None)
+#gene_train_filt, gleason_train = tree_based_selection(gene_train_filt, gleason_train, thresh=None)
 #gene_train_filt, gleason_train = L1_based_select(gene_train_filt, gleason_train, thresh=None)
 
 #copy and paste down here order:
 
 
+gene_train_filt, methodlog = basic_method_iteration(gene_train, gleason_train)
+print(methodlog)
 
 
 
@@ -120,7 +125,7 @@ print(methodlog)
 print("\n=====================================================\n")
 
 print("Visualise cross validation scores methodlog\n")
-visualise_accuracy_methodlog()
+visualise_accuracy_methodlog(methodlog)
 
 
 print("Plotting confusion matrix\n")
@@ -136,9 +141,24 @@ val_curve_gen(genedata[features_selected], gleasonscores)
 print("Plotting learning curve\n")
 plot_learning_curve(RandomForestClassifier(), genedata[features_selected], gleasonscores)
 
+"""
+if len(features_selected) < 40:
+    print("Pairplot\n")
+    mergedset = pd.merge(genedata[features_selected], gleasonscores['Gleason'], left_index=True, right_index=True)
+    print(mergedset)
+    sns.pairplot(mergedset, hue='Gleason')
+    plt.show()
 
-print("Plotting decision trees\n")
-vis_trees(RandomForestClassifier(n_estimators=100, random_state=42).fit(gene_train, gleason_train['Gleason']), "fit")
+
+print("Plotting tree\n")
+print(rfc_fit.base_estimator_)
+print(rfc_fit.base_estimator_.tree_)
+plot_tree(RandomForestClassifier(n_estimators=100, random_state=42).fit(genedata, gleasonscores['Gleason']).base_estimator_)
+plt.show()
+"""
+
+#print("Plotting decision trees\n")
+#vis_trees(RandomForestClassifier(n_estimators=100, random_state=42).fit(gene_train, gleason_train['Gleason']), "fit")
 
 
 

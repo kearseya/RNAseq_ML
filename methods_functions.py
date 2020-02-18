@@ -123,17 +123,21 @@ def initial_rank(genedata, gleasonscores):
 
 
 #produce graph showing the relatvie importance of the top features
-def plotimportances(in_feature_importances, gene_data, num_features, method):
+def plotimportances(in_feature_importances, gene_data, num_features, method, threshold, show_meth="save"):
     feature_importances = pd.Series(100*(in_feature_importances/max(in_feature_importances)), index=gene_data.columns)
     if num_features > 50:
         num_features = 50
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(15,10))
     top = feature_importances.nlargest(num_features)
     ax.barh(list(reversed(list(top.index))), list(reversed(list(top.data))),  color=['#ff0000' if (x < 50) else '#fff700' if (50 <= x <= 75) else '#33ff00' for x in list(reversed(list(top.data)))])
-    ax.set_title("Feature importance: "+method)
+    ax.set_title("Feature importance: "+method+" (threshold: "+str(threshold)+")")
     ax.set_xlabel("Relative importance")
     ax.set_ylabel("Features (Genes)")
-    plt.show()
+    plt.tight_layout()
+    if show_meth == "save":
+        plt.savefig(fname = ("figures/importances/"+method+str(threshold)), format='png')
+    if show_meth == "show":
+        plt.show()
 #plotimportances(initial_feature_importance, gene_data, 40, "Initial")
 
 #FIX and impliment
@@ -151,7 +155,7 @@ def plot_perm_importances(model, gene_data, gleason_score, method, setname):
 
 
 
-def variance_filter(gene_data, gleason_score, var_thresh=0.0):
+def variance_filter(gene_data, gleason_score, var_thresh=0.0, imp_plot="save"):
     print("\n=====================================================\n")
     method = "Variance filter"
     #remove features with low variance
@@ -181,15 +185,16 @@ def variance_filter(gene_data, gleason_score, var_thresh=0.0):
     print("RFC Scores:  ", rfc_scores)
     print("Accuracy:    %0.2f (+/- %0.2f)" % (rfc_scores.mean(), rfc_scores.std() * 2))
 
-    print("Plotting importances")
-    rfc.fit(gene_data, gleason_score['Gleason'])
-    rfc_importances = rfc.feature_importances_
-    plotimportances(rfc_importances, gene_data, 50, method)
-    if rfc.n_features_ < 50:
-        plot_perm_importances(rfc, gene_data, gleason_score, method, "train")
+    if imp_plot in ("save", "show"):
+        print("Plotting importances")
+        rfc.fit(gene_data, gleason_score['Gleason'])
+        rfc_importances = rfc.feature_importances_
+        plotimportances(rfc_importances, gene_data, 50, method, var_thresh, show_meth=imp_plot)
+        if rfc.n_features_ < 50:
+            plot_perm_importances(rfc, gene_data, gleason_score, method, "train")
 
     global methodlog
-    methodlog.append({"method": method, "size": gene_data.shape[1], "removed": before_num_genes-gene_data.shape[1], "rfc_scores": rfc_scores, "time-taken": time.time()-t1})
+    methodlog.append({"method": method, "threshold": var_thresh, "size": gene_data.shape[1], "removed": before_num_genes-gene_data.shape[1], "rfc_scores": rfc_scores, "time-taken": time.time()-t1})
 
     print("\n=====================================================\n")
     return gene_data, gleason_score
@@ -199,7 +204,7 @@ def variance_filter(gene_data, gleason_score, var_thresh=0.0):
 
 
 
-def univariate_filter(gene_data, gleason_score, k_val=1000):
+def univariate_filter(gene_data, gleason_score, k_val=1000, imp_plot="save"):
     print("\n=====================================================\n")
     method = "Univariate feature selection"
     #univariate feature selection
@@ -234,16 +239,17 @@ def univariate_filter(gene_data, gleason_score, k_val=1000):
     print("RFC Scores:  ", rfc_scores)
     print("Accuracy:    %0.2f (+/- %0.2f)" % (rfc_scores.mean(), rfc_scores.std() * 2))
 
-    #checking which are the most important features
-    print("Plotting importance")
-    rfc.fit(gene_data, gleason_score['Gleason'])
-    k_feature_importances = rfc.feature_importances_
-    plotimportances(k_feature_importances, gene_data, len(list(gene_data.columns.values)), method)
-    if rfc.n_features_ < 50:
-        plot_perm_importances(rfc, gene_data, gleason_score, method, "train")
+    if imp_plot in ("save", "show"):
+        #checking which are the most important features
+        print("Plotting importance")
+        rfc.fit(gene_data, gleason_score['Gleason'])
+        k_feature_importances = rfc.feature_importances_
+        plotimportances(k_feature_importances, gene_data, len(list(gene_data.columns.values)), method, k_val, show_meth=imp_plot)
+        if rfc.n_features_ < 50:
+            plot_perm_importances(rfc, gene_data, gleason_score, method, "train")
 
     global methodlog
-    methodlog.append({"method": method, "size": gene_data.shape[1], "removed": before_num_genes-gene_data.shape[1], "rfc_scores": rfc_scores, "time-taken": time.time()-t1})
+    methodlog.append({"method": method, "threshold": k_val, "size": gene_data.shape[1], "removed": before_num_genes-gene_data.shape[1], "rfc_scores": rfc_scores, "time-taken": time.time()-t1})
 
     print("\n=====================================================\n")
     return gene_data, gleason_score
@@ -252,7 +258,7 @@ def univariate_filter(gene_data, gleason_score, k_val=1000):
 
 
 
-def correlation_filter(gene_data, gleason_score, corr_thresh=0.8):
+def correlation_filter(gene_data, gleason_score, corr_thresh=0.8, imp_plot="save"):
     print("\n=====================================================\n")
     method = "High correlation filter"
     #mergedset = pd.merge(gene_data, gleason_score.reset_index(), left_index=True, right_index=True)
@@ -264,8 +270,8 @@ def correlation_filter(gene_data, gleason_score, corr_thresh=0.8):
     #print(corr_matrix['Gleason'].sort_values(ascending=False).head(10))
     #plot correlation matrix
     matrix = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(np.bool))
-    sns.heatmap(matrix)
-    plt.show()
+    #sns.heatmap(matrix)
+    #plt.show()
 
     #find index of feature columns with high correlation
     to_drop = [column for column in matrix.columns if any(matrix[column] > corr_thresh)]
@@ -282,16 +288,17 @@ def correlation_filter(gene_data, gleason_score, corr_thresh=0.8):
     print("RFC Scores:  ", rfc_scores)
     print("Accuracy:    %0.2f (+/- %0.2f)" % (rfc_scores.mean(), rfc_scores.std() * 2))
 
-    #checking which are the most important features
-    print("Plotting importance")
-    rfc.fit(gene_data, gleason_score['Gleason'])
-    correlation_importances = rfc.feature_importances_
-    plotimportances(correlation_importances, gene_data, len(list(gene_data.columns.values)), method)
-    if rfc.n_features_ < 50:
-        plot_perm_importances(rfc, gene_data, gleason_score, method, "train")
+    if imp_plot in ("save", "show"):
+        #checking which are the most important features
+        print("Plotting importance")
+        rfc.fit(gene_data, gleason_score['Gleason'])
+        correlation_importances = rfc.feature_importances_
+        plotimportances(correlation_importances, gene_data, len(list(gene_data.columns.values)), method, corr_thresh, show_meth=imp_plot)
+        if rfc.n_features_ < 50:
+            plot_perm_importances(rfc, gene_data, gleason_score, method, "train")
 
     global methodlog
-    methodlog.append({"method": method, "size": gene_data.shape[1], "removed": len(to_drop), "rfc_scores": rfc_scores, "time-taken": time.time()-t1})
+    methodlog.append({"method": method, "threshold": corr_thresh, "size": gene_data.shape[1], "removed": len(to_drop), "rfc_scores": rfc_scores, "time-taken": time.time()-t1})
 
     print("\n=====================================================\n")
     return gene_data, gleason_score
@@ -299,13 +306,16 @@ def correlation_filter(gene_data, gleason_score, corr_thresh=0.8):
 #gene_data, gleason_score = correlation_filter(gene_data, gleason_score)
 
 
-def corrlation_with_target(gene_data, gleason_score, corr_thresh=0.05):
+def corrlation_with_target(gene_data, gleason_score, corr_thresh=0.05, imp_plot="save"):
     print("\n=====================================================\n")
     method = "Target correlation filter"
     print(method, " (threshold: ", str(corr_thresh),")")
     t1 = time.time()
 
-    gleason_score = gleason_score.reset_index()
+    try:
+        gleason_score = gleason_score.reset_index()
+    except ValueError:
+        pass
     target_correlations = {}
 
     for feat in list(gene_data.columns.values):
@@ -325,23 +335,24 @@ def corrlation_with_target(gene_data, gleason_score, corr_thresh=0.05):
     print("RFC Scores:  ", rfc_scores)
     print("Accuracy:    %0.2f (+/- %0.2f)" % (rfc_scores.mean(), rfc_scores.std() * 2))
 
-    #checking which are the most important features
-    print("Plotting importance")
-    rfc.fit(gene_data, gleason_score['Gleason'])
-    correlation_importances = rfc.feature_importances_
-    plotimportances(correlation_importances, gene_data, len(list(gene_data.columns.values)), method)
-    if rfc.n_features_ < 50:
-        plot_perm_importances(rfc, gene_data, gleason_score, method, "train")
+    if imp_plot in ("save", "show"):
+        #checking which are the most important features
+        print("Plotting importance")
+        rfc.fit(gene_data, gleason_score['Gleason'])
+        correlation_importances = rfc.feature_importances_
+        plotimportances(correlation_importances, gene_data, len(list(gene_data.columns.values)), method, corr_thresh, show_meth=imp_plot)
+        if rfc.n_features_ < 50:
+            plot_perm_importances(rfc, gene_data, gleason_score, method, "train")
 
     global methodlog
-    methodlog.append({"method": method, "size": gene_data.shape[1], "removed": len(to_drop), "rfc_scores": rfc_scores, "time-taken": time.time()-t1})
+    methodlog.append({"method": method, "threshold": corr_thresh,"size": gene_data.shape[1], "removed": len(to_drop), "rfc_scores": rfc_scores, "time-taken": time.time()-t1})
 
     print("\n=====================================================\n")
     return gene_data, gleason_score
 
 
 
-def recursive_feature_elimination(gene_data, gleason_score, n_feat=None):
+def recursive_feature_elimination(gene_data, gleason_score, n_feat=None, imp_plot="save"):
     print("\n=====================================================\n")
     method = "Recursive feature elimination"
     #recursive feature elimination
@@ -377,15 +388,16 @@ def recursive_feature_elimination(gene_data, gleason_score, n_feat=None):
     print("RFC Scores:  ", rfc_scores)
     print("Accuracy:    %0.2f (+/- %0.2f)" % (rfc_scores.mean(), rfc_scores.std() * 2))
 
-    print("Plotting importance")
-    rfc.fit(gene_data, gleason_score['Gleason'])
-    recursive_importances = rfc.feature_importances_
-    plotimportances(recursive_importances, gene_data, len(list(gene_data.columns.values)), method)
-    if rfc.n_features_ < 50:
-        plot_perm_importances(rfc, gene_data, gleason_score, method, "train")
+    if imp_plot in ("save", "show"):
+        print("Plotting importance")
+        rfc.fit(gene_data, gleason_score['Gleason'])
+        recursive_importances = rfc.feature_importances_
+        plotimportances(recursive_importances, gene_data, len(list(gene_data.columns.values)), method, n_feat, show_meth=imp_plot)
+        if rfc.n_features_ < 50:
+            plot_perm_importances(rfc, gene_data, gleason_score, method, "train")
 
     global methodlogp
-    methodlog.append({"method": method, "size": gene_data.shape[1], "removed": before_num_genes-gene_data.shape[1], "rfc_scores": rfc_scores, "time-taken": time.time()-t1})
+    methodlog.append({"method": method, "threshold": n_feat, "size": gene_data.shape[1], "removed": before_num_genes-gene_data.shape[1], "rfc_scores": rfc_scores, "time-taken": time.time()-t1})
 
     print("\n=====================================================\n")
     return gene_data, gleason_score
@@ -394,9 +406,9 @@ def recursive_feature_elimination(gene_data, gleason_score, n_feat=None):
 
 
 
-def feature_select_from_model(gene_data, gleason_score, thresh=None):
+def feature_select_from_model(gene_data, gleason_score, thresh=None, imp_plot="save"):
     print("\n=====================================================\n")
-    method = "Feature select \nfrom model"
+    method = "Model feature select"
     t1 = time.time()
     rfc = RandomForestClassifier(n_estimators=100, random_state=42)
     #feature selection from model
@@ -431,15 +443,16 @@ def feature_select_from_model(gene_data, gleason_score, thresh=None):
     print("RFC Scores:  ", rfc_scores)
     print("Accuracy:    %0.2f (+/- %0.2f)" % (rfc_scores.mean(), rfc_scores.std() * 2))
 
-    print("Plotting importance")
-    rfc.fit(gene_data, gleason_score['Gleason'])
-    featsel_importances = rfc.feature_importances_
-    plotimportances(featsel_importances, gene_data, len(list(gene_data.columns.values)), method)
-    if rfc.n_features_ < 50:
-        plot_perm_importances(rfc, gene_data, gleason_score, method, "train")
+    if imp_plot in ("save", "show"):
+        print("Plotting importance")
+        rfc.fit(gene_data, gleason_score['Gleason'])
+        featsel_importances = rfc.feature_importances_
+        plotimportances(featsel_importances, gene_data, len(list(gene_data.columns.values)), method, thresh, show_meth=imp_plot)
+        if rfc.n_features_ < 50:
+            plot_perm_importances(rfc, gene_data, gleason_score, method, "train")
 
     global methodlog
-    methodlog.append({"method": method, "size": gene_data.shape[1], "removed": before_num_genes-gene_data.shape[1], "rfc_scores": rfc_scores, "time-taken": time.time()-t1})
+    methodlog.append({"method": method, "threshold": thresh, "size": gene_data.shape[1], "removed": before_num_genes-gene_data.shape[1], "rfc_scores": rfc_scores, "time-taken": time.time()-t1})
 
     print("\n=====================================================\n")
     return gene_data, gleason_score
@@ -448,7 +461,7 @@ def feature_select_from_model(gene_data, gleason_score, thresh=None):
 
 
 
-def tree_based_selection(gene_data, gleason_score, thresh=None):
+def tree_based_selection(gene_data, gleason_score, thresh=None, imp_plot="save"):
     print("\n=====================================================\n")
     method = "Tree based selection"
     #tree based selection
@@ -482,15 +495,17 @@ def tree_based_selection(gene_data, gleason_score, thresh=None):
     rfc_scores = cross_val_score(rfc, genedata[list(gene_data.columns.values)], gleasonscores['Gleason'], cv=5, scoring='accuracy')
     print("RFC Scores:  ", rfc_scores)
     print("Accuracy:    %0.2f (+/- %0.2f)" % (rfc_scores.mean(), rfc_scores.std() * 2))
-    print("Plotting importances")
-    etc_importances = ExtraTreesClassifier(n_estimators=100).fit(gene_data, gleason_score['Gleason']).feature_importances_
-    plotimportances(etc_importances, gene_data, len(list(gene_data.columns.values)), method)
-    rfc.fit(gene_data, gleason_score['Gleason'])
-    if rfc.n_features_ < 50:
-        plot_perm_importances(rfc, gene_data, gleason_score, method, "train")
+
+    if imp_plot in ("save", "show"):
+        print("Plotting importances")
+        etc_importances = ExtraTreesClassifier(n_estimators=100).fit(gene_data, gleason_score['Gleason']).feature_importances_
+        plotimportances(etc_importances, gene_data, len(list(gene_data.columns.values)), method, thresh, show_meth=imp_plot)
+        rfc.fit(gene_data, gleason_score['Gleason'])
+        if rfc.n_features_ < 50:
+            plot_perm_importances(rfc, gene_data, gleason_score, method, "train")
 
     global methodlog
-    methodlog.append({"method": method, "size": gene_data.shape[1], "removed": before_num_genes-gene_data.shape[1], "rfc_scores": rfc_scores, "time-taken": time.time()-t1})
+    methodlog.append({"method": method, "threshold": thresh, "size": gene_data.shape[1], "removed": before_num_genes-gene_data.shape[1], "rfc_scores": rfc_scores, "time-taken": time.time()-t1})
 
     print("\n=====================================================\n")
     return gene_data, gleason_score
@@ -498,7 +513,7 @@ def tree_based_selection(gene_data, gleason_score, thresh=None):
 #gene_data, gleason_score = tree_based_selection(gene_data, gleason_score, mergedset)
 
 
-def L1_based_select(gene_data, gleason_score, thresh=None):
+def L1_based_select(gene_data, gleason_score, thresh=None, imp_plot="save"):
     print("\n=====================================================\n")
     method = "L1-based selection"
     print(method, " (threshold: ", str(thresh),")")
@@ -533,15 +548,16 @@ def L1_based_select(gene_data, gleason_score, thresh=None):
     print("RFC Scores:  ", rfc_scores)
     print("Accuracy:    %0.2f (+/- %0.2f)" % (rfc_scores.mean(), rfc_scores.std() * 2))
 
-    print("Plotting importances")
-    rfc.fit(gene_data, gleason_score['Gleason'])
-    L1_importance = rfc.feature_importances_
-    plotimportances(L1_importance, gene_data, len(list(gene_data.columns.values)), method)
-    if rfc.n_features_ < 50:
-        plot_perm_importances(rfc, gene_data, gleason_score, method, "train")
+    if imp_plot in ("save", "show"):
+        print("Plotting importances")
+        rfc.fit(gene_data, gleason_score['Gleason'])
+        L1_importance = rfc.feature_importances_
+        plotimportances(L1_importance, gene_data, len(list(gene_data.columns.values)), method, thresh, show_meth=imp_plot)
+        if rfc.n_features_ < 50:
+            plot_perm_importances(rfc, gene_data, gleason_score, method, "train")
 
     global methodlog
-    methodlog.append({"method": method, "size": gene_data.shape[1], "removed": before_num_genes-gene_data.shape[1], "rfc_scores": rfc_scores, "time-taken": time.time()-t1})
+    methodlog.append({"method": method, "threshold": thresh, "size": gene_data.shape[1], "removed": before_num_genes-gene_data.shape[1], "rfc_scores": rfc_scores, "time-taken": time.time()-t1})
 
     print("\n=====================================================\n")
     return gene_data, gleason_score
@@ -575,7 +591,7 @@ def PCA_analysis(gene_data, gleason_score, n_comp):
     print("Accuracy: %0.2f (+/- %0.2f)" % (rfc_scores.mean(), rfc_scores.std() * 2))
 
     global methodlog
-    methodlog.append({"method": method, "size": gene_data.shape[1], "rfc_scores": rfc_scores, "time-taken": time.time()-t1})
+    methodlog.append({"method": method, "threshold": n_comp, "size": gene_data.shape[1], "rfc_scores": rfc_scores, "time-taken": time.time()-t1})
 
     print("\n=====================================================\n")
     #return gene_data, gleason_score
@@ -584,16 +600,114 @@ def PCA_analysis(gene_data, gleason_score, n_comp):
 
 
 
+
+
+
+def basic_method_iteration(gene_train, gleason_train):
+    global methodlog
+    func_list = [variance_filter,#(gene_train, gleason_train, var_thresh=0.0)
+                 univariate_filter,#(gene_train_filt, gleason_train, k_val=1000)
+                 correlation_filter,#(gene_train_filt, gleason_train, corr_thresh=0.75)
+                 corrlation_with_target,#(gene_train_filt, gleason_train, corr_thresh=0.1)
+                 recursive_feature_elimination,#(gene_train_filt, gleason_train, n_feat=None)
+                 feature_select_from_model,#(gene_train_filt, gleason_train, thresh=None)
+                 tree_based_selection,#(gene_train_filt, gleason_train, thresh=None)
+                 L1_based_select]#(gene_train_filt, gleason_train, thresh=None)
+    meth_func_index = {"Variance filter":variance_filter, "Univariate feature selection":univariate_filter, "High correlation filter":correlation_filter,
+                        "Target correlation filter":corrlation_with_target, "Recursive feature elimination":recursive_feature_elimination,
+                        "Model feature select":feature_select_from_model, "Tree based selection":tree_based_selection, "L1-based selection":L1_based_select}
+    func_meth_index = {variance_filter:"Variance filter", univariate_filter:"Univariate feature selection", correlation_filter:"High correlation filter",
+                        corrlation_with_target:"Target correlation filter", recursive_feature_elimination:"Recursive feature elimination",
+                        feature_select_from_model:"Model feature select", tree_based_selection:"Tree based selection", L1_based_select:"L1-based selection"}
+    thresholds_dictionary ={variance_filter: np.linspace(0, 0.05, 5), #var_thresh=0.0
+                 univariate_filter: np.linspace(500, 2500, 5, dtype=int), #k_val=1000)
+                 correlation_filter: np.linspace(0.5, 0.9, 9), #corr_thresh=0.75)
+                 corrlation_with_target: np.linspace(0.05, 0.25, 5), #corr_thresh=0.1)
+                 recursive_feature_elimination: [None], #np.linspace(),#n_feat=None)
+                 feature_select_from_model: [None], #np.linspace(), #thresh=None)
+                 tree_based_selection: [None], #np.linspace(): #thresh=None)
+                 L1_based_select: [None]} #np.linspace()} #thresh=None)
+    topnfun, topscore, topvar = 0, 0, 100
+    gene_train_filt = gene_train.copy()
+    optcheck, opttaken, done_list = [], [], []
+    for i in range(len(func_list)):
+        print("ROUND: ", i)
+        func_to_do = list(set(func_list)-set(done_list))
+        for x, fun in enumerate(func_to_do):
+            print("\n=====================================================\n")
+            print("ROUND: ", i)
+            print("METHOD: ", x, func_meth_index[fun])
+            if len(list(gene_train_filt.columns.values)) > 1000 and fun in (correlation_filter, recursive_feature_elimination):
+                methodlog.append({"method": func_meth_index[fun], "threshold": 0, "size": len(list(gene_train_filt.columns.values)), "removed": 0, "rfc_scores": [0,0,0,0,0]})
+                print("SKIPPING")
+                next(iter(func_to_do))
+            else:
+                for v in thresholds_dictionary[fun]:
+                    if fun == univariate_filter:
+                        if v < len(list(gene_train_filt.columns.values)):
+                            gene_train_filt_temp, gleason_train = fun(gene_train_filt, gleason_train, v, imp_plot=False)
+                            methodlog.append({"method": func_meth_index[fun], "threshold": 0, "size": len(list(gene_train_filt.columns.values)), "removed": 0, "rfc_scores": [0,0,0,0,0]})
+                            print("SKIPPING")
+                            next(iter(func_to_do))
+                    else:
+                        gene_train_filt_temp, gleason_train = fun(gene_train_filt, gleason_train, v, imp_plot=False)
+            if x == len(func_to_do)-1:
+                print("\n\n\nROUND", i, "FINISHED\n\n\n")
+                optcheck.append(methodlog)
+                print(len(optcheck))
+                methodlog = []
+                for method in optcheck[i]:
+                    print("\n=====================================================\n")
+                    print("Checking method: ", optcheck[i].index(method), i, method['method'], method['threshold'])
+                    tempscore = np.mean(method['rfc_scores'])
+                    tempvar = np.std(method['rfc_scores'])*2
+                    print("Score: ", tempscore, " Var: ", tempvar)
+                    print("Removed: ", method['removed'])
+                    if tempscore > topscore and tempvar <= topvar+(tempscore-topscore):
+                        topscore = tempscore.copy()
+                        topvar = tempvar.copy()
+                        topmethodlog = method.copy()
+                        topnfun = i
+                        print("Current best!!")
+                    if optcheck[i].index(method) == len(optcheck[i])-1:
+                        if topnfun == i:
+                            gene_train_filt, gleason_train = meth_func_index[topmethodlog['method']](gene_train_filt, gleason_train, topmethodlog['threshold'])
+                            opttaken.append(topmethodlog)
+                            print("\n=====================================================\n")
+                            print("\n\n\n\nTOP METHOD:  ", topmethodlog['method'], "\n")
+                            print("TOP SCORE:   ", topscore, " BEST VAR:    ", topvar, "\n")
+                            if i != 0:
+                                print("Improvement: ", topscore-np.mean(opttaken[i-1]['rfc_scores']), "              ", topvar-(np.std(opttaken[i-1]['rfc_scores'])*2), "\n")
+                            print("Removed:     ", topmethodlog['removed'], "New size:   ", topmethodlog['size'], "\n")
+                            print("Route:       ", [(order['method'], order['threshold']) for order in opttaken], "\n\n\n\n")
+                            print("\n=====================================================\n")
+                            if topmethodlog['method'] != "Recursive feature elimination":
+                                done_list.append(meth_func_index[topmethodlog['method']])
+                        else:
+                            print("\n=====================================================\n")
+                            print("\n\n\n\nDIDN'T BEAT LAST ROUND")
+                            print("Total number of rounds: ", topnfun, "\n")
+                            print("TOP SCORE:   ", topscore, " BEST VAR:    ", topvar, "\n")
+                            print("Removed:     ", len(genedata.columns.values)-len(gene_train_filt.columns.values), "New size:   ", topmethodlog['size'], "\n")
+                            print("Route:       ", [(order['method'], order['threshold']) for order in opttaken], "\n\n\n\n")
+                            print("\n=====================================================\n")
+                            return gene_train_filt, opttaken
+
+
+
+
+
+
 #print(methodlog)
 
-def visualise_accuracy_methodlog():
+def visualise_accuracy_methodlog(methodlog, show_meth="show"):
     methodorder = []
-    size = []
+    #size = []
     rfc_accuracy = []
     rfc_error = []
     for i in range(len(methodlog)):
         methodorder.append(methodlog[i]['method'])
-        size.append(methodlog[i]['size'])
+        #size.append(methodlog[i]['size'])
         try:
             rfc_accuracy.append(np.mean(methodlog[i]['rfc_scores']))
             rfc_error.append(np.std(methodlog[i]['rfc_scores'])*2)
@@ -612,7 +726,10 @@ def visualise_accuracy_methodlog():
     ax.set_xticks(ind) #+ width / 2)
     ax.set_xticklabels(tuple(methodorder))
     #ax.legend( (rects1[0]), ('Random Forest Classifier') ) #, rects2[0]), ('Logistic Regression', 'Random Forest Classifier') )
-    plt.show()
+    if show_meth == "save":
+        plt.savefig("Score vis")
+    if show_meth == "show":
+        plt.show()
 
 
 
@@ -621,8 +738,8 @@ def vis_trees(model, name):
     #export_graphviz(model.base_estimator_, out_file="trees/tree_base_"+str(name)+".dot")
     #call(['dot', '-Tpng', 'trees/tree_base_'+str(name)+'.dot', '-o', 'trees/tree_base_'+str(name)+'.png', '-Gdpi=600'])
     for i in range(len(model.estimators_)):
-        export_graphviz(model.estimators_[i], out_file="trees/tree_"+str(name)+"_"+str(i)+".dot")
-        call(['dot', '-Tpng', 'trees/tree_'+str(name)+'_'+str(i)+'.dot', '-o', 'trees/tree_'+str(name)+'_'+str(i)+'.png', '-Gdpi=600'])
+        export_graphviz(model.estimators_[i], out_file="figures/trees/tree_"+str(name)+"_"+str(i)+".dot")
+        call(['dot', '-Tpng', 'figures/trees/tree_'+str(name)+'_'+str(i)+'.dot', '-o', 'figures/trees/tree_'+str(name)+'_'+str(i)+'.png', '-Gdpi=600'])
 
 
 
@@ -824,5 +941,5 @@ gene_data = pd.DataFrame(principal_components, columns=pca_filter_genes)
 print("After:   ", str(gene_data.shape[1]), str(np.bool(gene_data.shape[1]==principal_components.shape[1])))
 print("Removed: ", str(before_num_genes-gene_data.shape[1]))
 global methodlog
-methodlog.append({"method": method, "size": gene_data.shape[1], "removed": before_num_genes-gene_data.shape[1], "lr_scores": lr_scores, "rfc_scores": rfc_scores, "lr_acc": lr_scores.mean(), "rfc_acc": rfc_scores.mean(), "lr_err": lr_scores.std()*2, "rfc_err": rfc_scores.std()*2})
+methodlog.append({"method": method, "threshold": thresh, "size": gene_data.shape[1], "removed": before_num_genes-gene_data.shape[1], "lr_scores": lr_scores, "rfc_scores": rfc_scores, "lr_acc": lr_scores.mean(), "rfc_acc": rfc_scores.mean(), "lr_err": lr_scores.std()*2, "rfc_err": rfc_scores.std()*2})
 """
