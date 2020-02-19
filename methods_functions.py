@@ -18,6 +18,9 @@ from sklearn.decomposition import PCA
 from sklearn.tree import export_graphviz
 from subprocess import call
 from sklearn.metrics import multilabel_confusion_matrix, plot_confusion_matrix
+from sklearn.model_selection import GridSearchCV
+
+from mpl_toolkits.mplot3d import Axes3D
 
 #import sklearn.neural_network
 #from sklearn.linear_model import LogisticRegression
@@ -411,6 +414,61 @@ def recursive_feature_elimination(gene_data, gleason_score, n_feat=None, step_va
 
 
 
+def recursive_feature_elimination_CV(gene_data, gleason_score, min_feat=1, step_val=1, imp_plot="save"):
+    #GREEDY
+    print("\n=====================================================\n")
+    method = "Recursive feature elimination w CV"
+    #recursive feature elimination
+    print(method, " (min features: ", str(min_feat),")")
+    t1 = time.time()
+    #lr = LogisticRegression(solver='liblinear', multi_class='auto', max_iter=5000) #max_iter specified as does not converge at 1000 (default)
+    rfc = RandomForestClassifier(n_estimators=100, random_state=42)
+    #feature extraction
+    print("Feature extraction")
+    rfe = feature_selection.RFECV(rfc, min_features_to_select=min_feat, step=step_val, cv=3) #, verbose=True)
+    #fit on train set and transform
+    print("Fitting and Transforming")
+    RFECV_features = rfe.fit_transform(gene_data, gleason_score['Gleason'])
+
+    gene_names = list(gene_data.columns.values)
+    before_num_genes = gene_data.shape[1]
+    passed_RFECV_filter = rfe.get_support()
+    print("Before:  ", str(before_num_genes))
+    RFECV_filter_genes = []
+    for bool, gene in zip(passed_RFECV_filter, gene_names):
+        if bool:
+            RFECV_filter_genes.append(gene)
+
+    gene_data = pd.DataFrame(RFECV_features, columns=RFECV_filter_genes)
+    #gene_data = gene_data.set_index(row_names)
+    print("After:   ", str(gene_data.shape[1]), str(np.bool(gene_data.shape[1]==RFECV_features.shape[1])))
+    print("Removed: ", str(before_num_genes-gene_data.shape[1]))
+
+    rfc = RandomForestClassifier(n_estimators=100, random_state=42)
+    print("Cross validating")
+    #print(cross_validate(rfc, genedata[list(gene_data.columns.values)], gleasonscores['Gleason'], cv=5))
+    rfc_scores = cross_val_score(rfc, genedata[list(gene_data.columns.values)], gleasonscores['Gleason'], cv=5, scoring='accuracy')
+    print("RFC Scores:  ", rfc_scores)
+    print("Accuracy:    %0.2f (+/- %0.2f)" % (rfc_scores.mean(), rfc_scores.std() * 2))
+
+    if imp_plot in ("save", "show"):
+        print("Plotting importance")
+        rfc.fit(gene_data, gleason_score['Gleason'])
+        recursiveCV_importances = rfc.feature_importances_
+        plotimportances(recursiveCV_importances, gene_data, len(list(gene_data.columns.values)), method, min_feat, show_meth=imp_plot)
+        if rfc.n_features_ < 50:
+            plot_perm_importances(rfc, gene_data, gleason_score, method, "train")
+
+    global methodlogp
+    methodlog.append({"method": method, "threshold": min_feat, "size": gene_data.shape[1], "removed": before_num_genes-gene_data.shape[1], "rfc_scores": rfc_scores, "time-taken": time.time()-t1})
+
+    print("\n=====================================================\n")
+    return gene_data, gleason_score
+
+#gene_data, gleason_score = recursive_feature_elimination(gene_data, gleason_score)
+
+
+
 def feature_select_from_model(gene_data, gleason_score, thresh=None, imp_plot="save"):
     #MODEL
     print("\n=====================================================\n")
@@ -628,20 +686,22 @@ def basic_method_iteration(gene_train, gleason_train):
                  correlation_filter,#(gene_train_filt, gleason_train, corr_thresh=0.75)
                  corrlation_with_target,#(gene_train_filt, gleason_train, corr_thresh=0.1)
                  recursive_feature_elimination,#(gene_train_filt, gleason_train, n_feat=None)
+                 recursive_feature_elimination_CV,#(gene_train_filt, gleason_train, n_feat=None)
                  feature_select_from_model,#(gene_train_filt, gleason_train, thresh=None)
                  tree_based_selection,#(gene_train_filt, gleason_train, thresh=None)
                  L1_based_select]#(gene_train_filt, gleason_train, thresh=None)
     meth_func_index = {"Variance filter":variance_filter, "Univariate feature selection":univariate_filter, "High correlation filter":correlation_filter,
-                        "Target correlation filter":corrlation_with_target, "Recursive feature elimination":recursive_feature_elimination,
+                        "Target correlation filter":corrlation_with_target, "Recursive feature elimination":recursive_feature_elimination, "Recursive feature elimination w CV":recursive_feature_elimination_CV,
                         "Model feature select":feature_select_from_model, "Tree based selection":tree_based_selection, "L1-based selection":L1_based_select}
     func_meth_index = {variance_filter:"Variance filter", univariate_filter:"Univariate feature selection", correlation_filter:"High correlation filter",
-                        corrlation_with_target:"Target correlation filter", recursive_feature_elimination:"Recursive feature elimination",
+                        corrlation_with_target:"Target correlation filter", recursive_feature_elimination:"Recursive feature elimination", recursive_feature_elimination_CV:"Recursive feature elimination w CV",
                         feature_select_from_model:"Model feature select", tree_based_selection:"Tree based selection", L1_based_select:"L1-based selection"}
     thresholds_dictionary ={variance_filter: np.linspace(0, 0.05, 5), #var_thresh=0.0
                  univariate_filter: np.linspace(500, 2500, 5, dtype=int), #k_val=1000)
                  correlation_filter: np.linspace(0.5, 0.9, 9), #corr_thresh=0.75)
                  corrlation_with_target: np.linspace(0.05, 0.25, 5), #corr_thresh=0.1)
                  recursive_feature_elimination: [None], #np.linspace(),#n_feat=None)
+                 recursive_feature_elimination_CV: [1], #np.linspace(),#n_feat=None)
                  feature_select_from_model: [None], #np.linspace(), #thresh=None)
                  tree_based_selection: [None], #np.linspace(): #thresh=None)
                  L1_based_select: [None]} #np.linspace()} #thresh=None)
@@ -655,7 +715,7 @@ def basic_method_iteration(gene_train, gleason_train):
             print("\n=====================================================\n")
             print("ROUND: ", i)
             print("METHOD: ", x, func_meth_index[fun])
-            if len(list(gene_train_filt.columns.values)) > 1000 and fun in (correlation_filter, recursive_feature_elimination):
+            if len(list(gene_train_filt.columns.values)) > 1000 and fun in (correlation_filter, recursive_feature_elimination, recursive_feature_elimination_CV):
                 methodlog.append({"method": func_meth_index[fun], "threshold": 0, "size": len(list(gene_train_filt.columns.values)), "removed": 0, "rfc_scores": [0,0,0,0,0]})
                 print("SKIPPING")
                 next(iter(func_to_do))
@@ -872,11 +932,11 @@ def vis_trees(model, name):
 
 
 
-def val_curve_gen(gene_data, gleason_score):
+def val_curve_gen(gene_data, gleason_score, mod=RandomForestClassifier()):
     # Create range of values for parameter
     param_range = np.arange(1, 250, 2)
     # Calculate accuracy on training and test set using range of parameter values
-    train_scores, test_scores = validation_curve(RandomForestClassifier(),
+    train_scores, test_scores = validation_curve(mod,
         gene_data, gleason_score['Gleason'], param_name='n_estimators',
         param_range=param_range, cv=5, scoring='accuracy', n_jobs=-1)
     # Calculate mean and standard deviation for training set scores
@@ -932,6 +992,138 @@ def plot_learning_curve(estimator, gene_data, gleason_score, ylim=None, cv=None,
 
 
 
+def hyperparameter_tuning(gene_train, gleason_train, gene_test, gleason_test, features_selected):
+    print("Grid searching:")
+    n_estimators = list(np.arange(10, 150, 2))
+    max_depth = [5, 8, 15, 25, 30]
+    min_samples_split = [2, 5, 10, 15, 100]
+    min_samples_leaf = [1, 2, 5, 10]
+    #bootstrap = [True]#, False]
+
+    hyperF = dict(n_estimators = n_estimators, max_depth = max_depth,
+                  min_samples_split = min_samples_split,
+                 min_samples_leaf = min_samples_leaf)
+
+    gridF = GridSearchCV(RandomForestClassifier(), hyperF, cv = 5, verbose = 1,
+                          n_jobs = -1)
+    bestF = gridF.fit(gene_train, gleason_train['Gleason'])
+
+    global best_model
+    best_model = bestF.best_estimator_
+    best_params = bestF.best_params_
+    best_score = bestF.best_score_
+    best_var = bestF.cv_results_['std_test_score'][bestF.best_index_]*2
+
+    print("Best model:  ", best_model)
+    print("Best params: ", best_params)
+    print("Best Score:  ", best_score)
+    print("Best Var:    ", best_var)
+
+    evaluate(best_model, gene_test, gleason_test['Gleason'])
+
+    return best_model
+
+
+
+
+from sklearn.base import BaseEstimator, clone
+from sklearn.cluster import AgglomerativeClustering
+from sklearn.utils.metaestimators import if_delegate_has_method
+import mpl_toolkits.mplot3d.axes3d as p3
+
+
+class InductiveClusterer(BaseEstimator):
+    def __init__(self, clusterer, classifier):
+        self.clusterer = clusterer
+        self.classifier = classifier
+
+    def fit(self, X, y=None):
+        self.clusterer_ = clone(self.clusterer)
+        self.classifier_ = clone(self.classifier)
+        y = self.clusterer_.fit_predict(X)
+        self.classifier_.fit(X, y)
+        return self
+
+    @if_delegate_has_method(delegate='classifier_')
+    def predict(self, X):
+        return self.classifier_.predict(X)
+
+    @if_delegate_has_method(delegate='classifier_')
+    def decision_function(self, X):
+        return self.classifier_.decision_function(X)
+
+def plot_test_classifier(gene_train, gleason_train, gene_test, gleason_test, model, top2):
+
+    def plot_scatter(X,  color, alpha=0.5):
+        return plt.scatter(X[:, 0],
+                           X[:, 1],
+                           c=color,
+                           alpha=alpha,
+                           edgecolor='k')
+
+    X = gene_train[list(top2.index)].to_numpy()
+    y = gleason_train['Gleason'].to_numpy()
+
+    # Train a clustering algorithm on the training data and get the cluster labels
+    clusterer = AgglomerativeClustering(n_clusters=4, linkage='ward')
+    cluster_labels = y
+    #cluster_labels = clusterer.fit_predict(X)
+
+    plt.figure(figsize=(12, 4))
+
+    plt.subplot(131)
+    plot_scatter(X, cluster_labels)
+    plt.title("Training data")
+
+    X_new = gene_test[list(top2.index)].to_numpy()
+    y_new = gleason_test['Gleason'].to_numpy()
+
+    plt.subplot(132)
+    plot_scatter(X, cluster_labels)
+    plot_scatter(X_new, y_new, 1)
+    plt.title("Test data")
+
+    # Declare the inductive learning model that it will be used to
+    # predict cluster membership for unknown instances
+    classifier = model
+    inductive_learner = InductiveClusterer(clusterer, classifier).fit(X)
+
+    probable_clusters = inductive_learner.predict(X_new)
+
+    plt.subplot(133)
+    plot_scatter(X, cluster_labels)
+    plot_scatter(X_new, probable_clusters)
+
+    # Plotting decision regions
+    x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
+    y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.1),
+                         np.arange(y_min, y_max, 0.1))
+
+    Z = inductive_learner.predict(np.c_[xx.ravel(), yy.ravel()])
+    Z = Z.reshape(xx.shape)
+
+    plt.contourf(xx, yy, Z, alpha=0.4)
+    plt.title("Classify test samples")
+
+    plt.show()
+
+
+
+def plot_3D_top3(top3):
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+
+    first = top3.index[0]
+    second = top3.index[1]
+    third = top3.index[2]
+
+    ax.scatter(genedata[[first]], genedata[[second]], genedata[[third]], c=gleasonscores['Gleason'])
+    ax.set_xlabel(first)
+    ax.set_ylabel(second)
+    ax.set_zlabel(third)
+
+    plt.show()
 
 
 

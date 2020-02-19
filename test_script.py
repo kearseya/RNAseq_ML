@@ -48,17 +48,14 @@ gene_train, gene_test, gleason_train, gleason_test = train_test_split(genedata, 
 #gene_train_filt, gleason_train = L1_based_select(gene_train_filt, gleason_train, thresh=None)
 
 #copy and paste down here order:
-#gene_train_filt, gleason_train = feature_select_from_model(gene_train, gleason_train, thresh=None)
-#gene_train_filt, gleason_train = recursive_feature_elimination(gene_train_filt, gleason_train, n_feat=None)
-#gene_train_filt, gleason_train = recursive_feature_elimination(gene_train_filt, gleason_train, n_feat=None)
-#gene_train_filt, gleason_train = recursive_feature_elimination(gene_train_filt, gleason_train, n_feat=None)
-#gene_train_filt, gleason_train = recursive_feature_elimination(gene_train_filt, gleason_train, n_feat=None)
+
 
 
 
 gene_train_filt, methodlog = basic_method_iteration(gene_train, gleason_train)
 #gene_train_filt, methodlog = split_method_iteration(gene_train, gleason_train)
 print(methodlog)
+
 
 
 
@@ -89,7 +86,7 @@ def filter_data(export_data=False):
     print("\n=====================================================\n")
     features_selected = list(gene_train_filt.columns.values)
     print("Features selected: ")
-    print(features_selected[1:5])
+    #print(features_selected[1:5])
     gene_train = gene_train[features_selected]
     gene_test = gene_test[features_selected]
     if export_data == True:
@@ -101,12 +98,22 @@ filter_data()
 
 print("Train gene shape:    ", gene_train.shape)
 
-def model_accuracy():
+def model_accuracy(mod):
     print("\n=====================================================\n")
     #Random Forest Classifier
     rfc = RandomForestClassifier(n_estimators=100, random_state=42) #value from validation curve, check with hyperparameters
     global rfc_fit
-    rfc_fit = rfc.fit(gene_train, gleason_train['Gleason'])
+    rfc_fit = mod.fit(gene_train, gleason_train['Gleason'])
+
+    feat_import = rfc_fit.feature_importances_
+    feat_import_series = pd.Series(100*(feat_import/max(feat_import)), index=gene_train.columns)
+    global top2
+    top2 = feat_import_series.nlargest(2)
+    global top3
+    top3 = feat_import_series.nlargest(3)
+    print("TOP 3: ", top3)
+    plot_3D_top3(top3)
+
     global rfc_predictions
     rfc_predictions = rfc_fit.predict(gene_test)
     print("RFC accuracy:    ", accuracy_score(gleason_test['Gleason'], rfc_predictions))
@@ -119,14 +126,16 @@ def model_accuracy():
     print("Accuracy:    %0.2f (+/- %0.2f)" % (rfc_scores.mean(), rfc_scores.std() * 2))
 
     #print("RFC sensitivity: ", recall_score(gleason_test['Gleason'], rfc_predictions, average='samples'))
-    print("Num features:    ", rfc.n_features_)
-    #print("Num classes:     ", rfc.n_classes_)
-    #print("Num outputs:     ", rfc.n_outputs_)
+    print("Num features:    ", mod.n_features_)
+    #print("Num classes:     ", mod.n_classes_)
+    #print("Num outputs:     ", mod.n_outputs_)
     #print(rfc_fit.base_estimator_)
     #print(rfc_fit.estimators_)
     print("\n=====================================================\n")
+    return top2, top3
 
-model_accuracy()
+fs_top2, fs_top3 = model_accuracy(RandomForestClassifier(n_estimators=100, random_state=42))
+
 
 
 print("Method Log")
@@ -137,6 +146,10 @@ print("\n=====================================================\n")
 
 print("Visualise cross validation scores methodlog\n")
 visualise_accuracy_methodlog(methodlog)
+
+
+print("Plotting top2 classification\n")
+plot_test_classifier(gene_train, gleason_train, gene_test, gleason_test, RandomForestClassifier(n_estimators=100, random_state=42), fs_top2)
 
 
 print("Plotting confusion matrix\n")
@@ -153,44 +166,31 @@ print("Plotting learning curve\n")
 plot_learning_curve(RandomForestClassifier(), genedata[features_selected], gleasonscores)
 
 
+print("\n=====================================================\n")
 
-def hyperparameter_tuning():
-    print("Grid searching:")
-    n_estimators = list(np.arange(10, 150, 2))
-    max_depth = [5, 8, 15, 25, 30]
-    min_samples_split = [2, 5, 10, 15, 100]
-    min_samples_leaf = [1, 2, 5, 10]
-    #bootstrap = [True]#, False]
 
-    hyperF = dict(n_estimators = n_estimators, max_depth = max_depth,
-                  min_samples_split = min_samples_split,
-                 min_samples_leaf = min_samples_leaf)
+best_model = hyperparameter_tuning(gene_train, gleason_train, gene_test, gleason_test, features_selected)
 
-    gridF = GridSearchCV(RandomForestClassifier(), hyperF, cv = 5, verbose = 1,
-                          n_jobs = -1)
-    bestF = gridF.fit(gene_train, gleason_train['Gleason'])
+hp_fs_top2, hp_fs_top3 = model_accuracy(best_model)
 
-    best_model = bestF.best_estimator_
-    best_params = bestF.best_params_
-    best_score = bestF.best_score_
 
-    print("Best model:  ", best_model)
-    print("Best params: ", best_params)
-    print("Best Score:  ", best_score)
+print("Plotting top2 classification\n")
+plot_test_classifier(gene_train, gleason_train, gene_test, gleason_test, best_model, hp_fs_top2)
 
-    evaluate(best_model, gene_test, gleason_test['Gleason'])
 
-    print("Plotting confusion matrix\n")
-    plot_confusion_matrix(best_model, genedata[features_selected], gleasonscores['Gleason'], normalize='true').ax_.set_title("Multilabel Confusion Matrix")
-    plt.show()
+print("Plotting confusion matrix\n")
+plot_confusion_matrix(best_model, genedata[features_selected], gleasonscores['Gleason'], normalize='true').ax_.set_title("Multilabel Confusion Matrix")
+plt.show()
 
-    print("Plotting learning curve\n")
-    plot_learning_curve(best_model, genedata[features_selected], gleasonscores)
+print("Plotting learning curve\n")
+plot_learning_curve(best_model, genedata[features_selected], gleasonscores)
 
 
 
 
-#hyperparameter_tuning()
+
+#print("Plotting decision trees\n")
+#vis_trees(RandomForestClassifier(n_estimators=100, random_state=42).fit(gene_train, gleason_train['Gleason']), "fit")
 
 
 
@@ -212,8 +212,7 @@ plot_tree(RandomForestClassifier(n_estimators=100, random_state=42).fit(genedata
 plt.show()
 """
 
-#print("Plotting decision trees\n")
-#vis_trees(RandomForestClassifier(n_estimators=100, random_state=42).fit(gene_train, gleason_train['Gleason']), "fit")
+
 
 
 
