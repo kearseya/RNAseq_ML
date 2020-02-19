@@ -5,6 +5,12 @@ Exmperimental learning curve (*NB needs correcting*):
 ![learning curve](/example_figs/learning_curve_example_unbias.png.png)
 
 
+Experimental classification graph:
+
+![learning curve](/example_figs/classify_unknown.png)
+
+
+
 ## Comparing reduction
 
 Authors: Robert McGibbon, Joel Nothman
