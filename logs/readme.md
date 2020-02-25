@@ -4,6 +4,7 @@ Genereated with script (graphing commands were excluded to allow for continuous 
 
 ```bash
 for i in {1..30};
+	echo $i
 	time python3 -u test_script.py > logs/test_$i.log 2> times1_30;
 done
 ```
