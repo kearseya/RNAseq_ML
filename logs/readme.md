@@ -5,7 +5,6 @@ Genereated with script:
 ```bash
 #!/bin/bash
 for i in {1..30};
-	do echo $i
 	time python3 -u test_script.py > logs/test_$i.log;
 done
 ```
