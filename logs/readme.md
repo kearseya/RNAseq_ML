@@ -10,7 +10,18 @@ for i in {1..30};
 done
 ```
 
-Thr routes were then extracted using:
+The STDERR containing the time data was manually copied and pasted into the time1_30 file, the real times were then extracted using:
+
+```bash
+cat time1_30 | grep "real" | sed -e 's/real\t//g' | awk -F 'm' '{sum += $1*60 + $2} END { print sum/60/60 }'
+```
+
+This gave a total run time of **8.97797** hours (538.6782 minutes).  
+So the average time for runnigng a full script was **17.95** minutes.
+
+
+
+The routes were then extracted using:
 
 ```bash
 #!/bin/bash
@@ -23,4 +34,9 @@ sed '$!s/$/,/' routes_temp.txt > routes.txt
 
 rm routes_temp.txt
 ```
+
+
+
+
+
 The resulting routes.txt file was then used to generate the graphs.
