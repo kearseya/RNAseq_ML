@@ -1,6 +1,6 @@
 # Log files
 
-Genereated with script:
+Genereated with script (graphing commands were excluded to allow for continuous running of the script):
 
 ```bash
 for i in {1..30};
