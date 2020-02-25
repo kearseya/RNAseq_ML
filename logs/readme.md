@@ -16,8 +16,8 @@ The STDERR containing the time data was manually copied and pasted into the time
 cat time1_30 | grep "real" | sed -e 's/real\t//g' | awk -F 'm' '{sum += $1*60 + $2} END { print sum/60/60 }'
 ```
 
-This gave a total run time of **8.97797** hours (538.6782 minutes).  
-So the average time for runnigng a full script was **17.95** minutes.
+This gave a total run time of **8.98 hours** (538.68 minutes).  
+So the average time for runnigng a full script was **17.95 minutes**.
 
 
 
