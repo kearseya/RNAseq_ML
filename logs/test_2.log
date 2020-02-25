@@ -1,0 +1,2205 @@
+
+=====================================================
+
+Null accurancy score:     8    0.285714
+Name: Gleason, dtype: float64
+Checking for missing data: 
+False
+ROUND:  0
+
+=====================================================
+
+ROUND:  0
+METHOD:  0 L1-based selection
+
+=====================================================
+
+L1-based selection  (threshold:  None )
+Fitting
+Transforming
+Before:   23281
+After:    38 True
+Removed:  23243
+Cross validating
+RFC Scores:   [0.28571429 0.28571429 0.42857143 0.28571429 0.14285714]
+Accuracy:    0.29 (+/- 0.18)
+
+=====================================================
+
+
+=====================================================
+
+ROUND:  0
+METHOD:  1 Variance filter
+
+=====================================================
+
+Removing features with low variance  (threshold:  0.0 )
+Fitting and Transforming
+Before:   23281
+After:    21685 True
+Removed:  1596
+Cross validating
+RFC Scores:   [0.57142857 0.28571429 0.71428571 0.28571429 0.57142857]
+Accuracy:    0.49 (+/- 0.34)
+
+=====================================================
+
+
+=====================================================
+
+Removing features with low variance  (threshold:  0.0125 )
+Fitting and Transforming
+Before:   23281
+After:    16158 True
+Removed:  7123
+Cross validating
+RFC Scores:   [0.28571429 0.42857143 0.42857143 0.         0.42857143]
+Accuracy:    0.31 (+/- 0.33)
+
+=====================================================
+
+
+=====================================================
+
+Removing features with low variance  (threshold:  0.025 )
+Fitting and Transforming
+Before:   23281
+After:    14909 True
+Removed:  8372
+Cross validating
+RFC Scores:   [0.42857143 0.42857143 0.57142857 0.28571429 0.42857143]
+Accuracy:    0.43 (+/- 0.18)
+
+=====================================================
+
+
+=====================================================
+
+Removing features with low variance  (threshold:  0.037500000000000006 )
+Fitting and Transforming
+Before:   23281
+After:    14030 True
+Removed:  9251
+Cross validating
+RFC Scores:   [0.57142857 0.28571429 0.42857143 0.14285714 0.42857143]
+Accuracy:    0.37 (+/- 0.29)
+
+=====================================================
+
+
+=====================================================
+
+Removing features with low variance  (threshold:  0.05 )
+Fitting and Transforming
+Before:   23281
+After:    13355 True
+Removed:  9926
+Cross validating
+RFC Scores:   [0.28571429 0.42857143 0.28571429 0.42857143 0.28571429]
+Accuracy:    0.34 (+/- 0.14)
+
+=====================================================
+
+
+=====================================================
+
+ROUND:  0
+METHOD:  2 Recursive feature elimination w CV
+SKIPPING
+
+=====================================================
+
+ROUND:  0
+METHOD:  3 High correlation filter
+SKIPPING
+
+=====================================================
+
+ROUND:  0
+METHOD:  4 Model feature select
+
+=====================================================
+
+Feature selection from model (threshold:  None )
+Fitting
+Transforming
+Before:   23281
+After:    435 True
+Removed:  22846
+Cross validating
+RFC Scores:   [0.57142857 0.71428571 0.57142857 0.57142857 1.        ]
+Accuracy:    0.69 (+/- 0.33)
+
+=====================================================
+
+
+=====================================================
+
+ROUND:  0
+METHOD:  5 Target correlation filter
+
+=====================================================
+
+Target correlation filter  (threshold:  0.05 )
+Before:   23281
+After:    23281
+Removed:  0
+RFC Scores:   [0.42857143 0.57142857 0.28571429 0.28571429 0.42857143]
+Accuracy:    0.40 (+/- 0.21)
+
+=====================================================
+
+
+=====================================================
+
+Target correlation filter  (threshold:  0.1 )
+Before:   23281
+After:    23281
+Removed:  0
+RFC Scores:   [0.42857143 0.57142857 0.28571429 0.28571429 0.42857143]
+Accuracy:    0.40 (+/- 0.21)
+
+=====================================================
+
+
+=====================================================
+
+Target correlation filter  (threshold:  0.15000000000000002 )
+Before:   23281
+After:    23281
+Removed:  0
+RFC Scores:   [0.42857143 0.57142857 0.28571429 0.28571429 0.42857143]
+Accuracy:    0.40 (+/- 0.21)
+
+=====================================================
+
+
+=====================================================
+
+Target correlation filter  (threshold:  0.2 )
+Before:   23281
+After:    23281
+Removed:  0
+RFC Scores:   [0.42857143 0.57142857 0.28571429 0.28571429 0.42857143]
+Accuracy:    0.40 (+/- 0.21)
+
+=====================================================
+
+
+=====================================================
+
+Target correlation filter  (threshold:  0.25 )
+Before:   23281
+After:    23281
+Removed:  0
+RFC Scores:   [0.42857143 0.57142857 0.28571429 0.28571429 0.42857143]
+Accuracy:    0.40 (+/- 0.21)
+
+=====================================================
+
+
+=====================================================
+
+ROUND:  0
+METHOD:  6 Tree based selection
+
+=====================================================
+
+Tree based selection  (threshold:  None )
+Fitting
+Transforming
+Before:   23281
+After:    817 True
+Removed:  22464
+Cross validating
+RFC Scores:   [0.85714286 0.57142857 0.71428571 0.57142857 0.85714286]
+Accuracy:    0.71 (+/- 0.26)
+
+=====================================================
+
+
+=====================================================
+
+ROUND:  0
+METHOD:  7 Recursive feature elimination
+SKIPPING
+
+=====================================================
+
+ROUND:  0
+METHOD:  8 Univariate feature selection
+
+=====================================================
+
+Univariate feature selection  (n features:  500 )
+Feature selection
+Fitting and Transforming
+Before:   23281
+After:    500 True
+Removed:  22781
+Cross validating
+RFC Scores:   [0.42857143 0.71428571 0.28571429 0.42857143 0.85714286]
+Accuracy:    0.54 (+/- 0.42)
+
+=====================================================
+
+
+=====================================================
+
+Univariate feature selection  (n features:  1000 )
+Feature selection
+Fitting and Transforming
+Before:   23281
+After:    1000 True
+Removed:  22281
+Cross validating
+RFC Scores:   [0.85714286 0.71428571 0.57142857 0.57142857 0.85714286]
+Accuracy:    0.71 (+/- 0.26)
+
+=====================================================
+
+
+=====================================================
+
+Univariate feature selection  (n features:  1500 )
+Feature selection
+Fitting and Transforming
+Before:   23281
+After:    1500 True
+Removed:  21781
+Cross validating
+RFC Scores:   [0.28571429 0.42857143 0.57142857 0.85714286 0.85714286]
+Accuracy:    0.60 (+/- 0.46)
+
+=====================================================
+
+
+=====================================================
+
+Univariate feature selection  (n features:  2000 )
+Feature selection
+Fitting and Transforming
+Before:   23281
+After:    2000 True
+Removed:  21281
+Cross validating
+RFC Scores:   [0.14285714 0.71428571 0.57142857 0.71428571 0.42857143]
+Accuracy:    0.51 (+/- 0.43)
+
+=====================================================
+
+
+=====================================================
+
+Univariate feature selection  (n features:  2500 )
+Feature selection
+Fitting and Transforming
+Before:   23281
+After:    2500 True
+Removed:  20781
+Cross validating
+RFC Scores:   [0.57142857 0.57142857 0.57142857 0.42857143 0.71428571]
+Accuracy:    0.57 (+/- 0.18)
+
+=====================================================
+
+
+
+
+ROUND 0 FINISHED
+
+
+
+1 21
+
+=====================================================
+
+Checking method:  0 / 20 0 L1-based selection None
+Score:  0.2857142857142857  Var:  0.18070158058105024
+Removed:  23243
+Current best!!
+
+=====================================================
+
+Checking method:  1 / 20 0 Variance filter 0.0
+Score:  0.48571428571428577  Var:  0.34285714285714286
+Removed:  1596
+Current best!!
+
+=====================================================
+
+Checking method:  2 / 20 0 Variance filter 0.0125
+Score:  0.3142857142857143  Var:  0.3331972511340171
+Removed:  7123
+
+=====================================================
+
+Checking method:  3 / 20 0 Variance filter 0.025
+Score:  0.4285714285714285  Var:  0.1807015805810502
+Removed:  8372
+
+=====================================================
+
+Checking method:  4 / 20 0 Variance filter 0.037500000000000006
+Score:  0.3714285714285714  Var:  0.2913725436338734
+Removed:  9251
+
+=====================================================
+
+Checking method:  5 / 20 0 Variance filter 0.05
+Score:  0.3428571428571428  Var:  0.13997084244475302
+Removed:  9926
+
+=====================================================
+
+Checking method:  6 / 20 0 Recursive feature elimination w CV 0
+Score:  0.0  Var:  0.0
+Removed:  0
+
+=====================================================
+
+Checking method:  7 / 20 0 High correlation filter 0
+Score:  0.0  Var:  0.0
+Removed:  0
+
+=====================================================
+
+Checking method:  8 / 20 0 Model feature select None
+Score:  0.6857142857142857  Var:  0.3331972511340172
+Removed:  22846
+Current best!!
+
+=====================================================
+
+Checking method:  9 / 20 0 Target correlation filter 0.05
+Score:  0.39999999999999997  Var:  0.2138089935299395
+Removed:  0
+
+=====================================================
+
+Checking method:  10 / 20 0 Target correlation filter 0.1
+Score:  0.39999999999999997  Var:  0.2138089935299395
+Removed:  0
+
+=====================================================
+
+Checking method:  11 / 20 0 Target correlation filter 0.15000000000000002
+Score:  0.39999999999999997  Var:  0.2138089935299395
+Removed:  0
+
+=====================================================
+
+Checking method:  12 / 20 0 Target correlation filter 0.2
+Score:  0.39999999999999997  Var:  0.2138089935299395
+Removed:  0
+
+=====================================================
+
+Checking method:  13 / 20 0 Target correlation filter 0.25
+Score:  0.39999999999999997  Var:  0.2138089935299395
+Removed:  0
+
+=====================================================
+
+Checking method:  14 / 20 0 Tree based selection None
+Score:  0.7142857142857143  Var:  0.2555506259999759
+Removed:  22464
+Current best!!
+
+=====================================================
+
+Checking method:  15 / 20 0 Recursive feature elimination 0
+Score:  0.0  Var:  0.0
+Removed:  0
+
+=====================================================
+
+Checking method:  16 / 20 0 Univariate feature selection 500
+Score:  0.5428571428571428  Var:  0.4199125273342591
+Removed:  22781
+
+=====================================================
+
+Checking method:  17 / 20 0 Univariate feature selection 1000
+Score:  0.7142857142857143  Var:  0.2555506259999759
+Removed:  22281
+
+=====================================================
+
+Checking method:  18 / 20 0 Univariate feature selection 1500
+Score:  0.6  Var:  0.45714285714285713
+Removed:  21781
+
+=====================================================
+
+Checking method:  19 / 20 0 Univariate feature selection 2000
+Score:  0.5142857142857142  Var:  0.427617987059879
+Removed:  21281
+
+=====================================================
+
+Checking method:  20 / 20 0 Univariate feature selection 2500
+Score:  0.5714285714285714  Var:  0.18070158058105026
+Removed:  20781
+First: 0 0
+Second: 0 0
+
+=====================================================
+
+Tree based selection  (threshold:  None )
+Fitting
+Transforming
+Before:   23281
+After:    821 True
+Removed:  22460
+Cross validating
+RFC Scores:   [0.57142857 0.42857143 0.57142857 0.71428571 0.71428571]
+Accuracy:    0.60 (+/- 0.21)
+Plotting importances
+
+=====================================================
+
+
+=====================================================
+
+
+
+
+
+TOP METHOD:   Tree based selection 
+
+TOP SCORE:    0.7142857142857143  BEST VAR:     0.2555506259999759 
+
+Removed:      22464 New size:    817 
+
+Route:        [('Tree based selection', None)] 
+
+
+
+
+
+=====================================================
+
+ROUND:  1
+
+=====================================================
+
+ROUND:  1
+METHOD:  0 L1-based selection
+
+=====================================================
+
+L1-based selection  (threshold:  None )
+Fitting
+Transforming
+Before:   821
+After:    21 True
+Removed:  800
+Cross validating
+RFC Scores:   [0.14285714 0.42857143 0.71428571 0.42857143 0.71428571]
+Accuracy:    0.49 (+/- 0.43)
+
+=====================================================
+
+
+=====================================================
+
+ROUND:  1
+METHOD:  1 Variance filter
+
+=====================================================
+
+Removing features with low variance  (threshold:  0.0 )
+Fitting and Transforming
+Before:   821
+After:    821 True
+Removed:  0
+Cross validating
+RFC Scores:   [0.42857143 0.42857143 0.42857143 0.14285714 0.57142857]
+Accuracy:    0.40 (+/- 0.28)
+
+=====================================================
+
+
+=====================================================
+
+Removing features with low variance  (threshold:  0.0125 )
+Fitting and Transforming
+Before:   821
+After:    640 True
+Removed:  181
+Cross validating
+RFC Scores:   [0.28571429 0.42857143 0.28571429 0.28571429 0.42857143]
+Accuracy:    0.34 (+/- 0.14)
+
+=====================================================
+
+
+=====================================================
+
+Removing features with low variance  (threshold:  0.025 )
+Fitting and Transforming
+Before:   821
+After:    580 True
+Removed:  241
+Cross validating
+RFC Scores:   [0.28571429 0.42857143 0.28571429 0.28571429 0.42857143]
+Accuracy:    0.34 (+/- 0.14)
+
+=====================================================
+
+
+=====================================================
+
+Removing features with low variance  (threshold:  0.037500000000000006 )
+Fitting and Transforming
+Before:   821
+After:    548 True
+Removed:  273
+Cross validating
+RFC Scores:   [0.42857143 0.28571429 0.28571429 0.71428571 0.28571429]
+Accuracy:    0.40 (+/- 0.33)
+
+=====================================================
+
+
+=====================================================
+
+Removing features with low variance  (threshold:  0.05 )
+Fitting and Transforming
+Before:   821
+After:    513 True
+Removed:  308
+Cross validating
+RFC Scores:   [0.28571429 0.42857143 0.28571429 0.14285714 0.57142857]
+Accuracy:    0.34 (+/- 0.29)
+
+=====================================================
+
+
+=====================================================
+
+ROUND:  1
+METHOD:  2 Recursive feature elimination w CV
+
+=====================================================
+
+Recursive feature elimination w CV  (min features:  1 )
+Feature extraction
+Fitting and Transforming
+Before:   821
+After:    66 True
+Removed:  755
+Cross validating
+RFC Scores:   [0.57142857 0.71428571 0.57142857 0.71428571 0.85714286]
+Accuracy:    0.69 (+/- 0.21)
+
+=====================================================
+
+
+=====================================================
+
+ROUND:  1
+METHOD:  3 High correlation filter
+
+=====================================================
+
+High correlation filter  (threshold:  0.5 )
+(this may take some time, can crash n>1000)
+Before:   821
+After:    35
+Removed:  786
+RFC Scores:   [0.57142857 0.42857143 0.42857143 0.28571429 0.57142857]
+Accuracy:    0.46 (+/- 0.21)
+
+=====================================================
+
+
+=====================================================
+
+High correlation filter  (threshold:  0.55 )
+(this may take some time, can crash n>1000)
+Before:   821
+After:    57
+Removed:  764
+RFC Scores:   [0.71428571 0.57142857 0.42857143 0.28571429 0.57142857]
+Accuracy:    0.51 (+/- 0.29)
+
+=====================================================
+
+
+=====================================================
+
+High correlation filter  (threshold:  0.6 )
+(this may take some time, can crash n>1000)
+Before:   821
+After:    114
+Removed:  707
+RFC Scores:   [0.71428571 0.42857143 0.71428571 0.71428571 1.        ]
+Accuracy:    0.71 (+/- 0.36)
+
+=====================================================
+
+
+=====================================================
+
+High correlation filter  (threshold:  0.65 )
+(this may take some time, can crash n>1000)
+Before:   821
+After:    210
+Removed:  611
+RFC Scores:   [0.28571429 0.85714286 0.42857143 0.42857143 0.57142857]
+Accuracy:    0.51 (+/- 0.39)
+
+=====================================================
+
+
+=====================================================
+
+High correlation filter  (threshold:  0.7 )
+(this may take some time, can crash n>1000)
+Before:   821
+After:    327
+Removed:  494
+RFC Scores:   [0.28571429 0.42857143 0.42857143 0.42857143 0.71428571]
+Accuracy:    0.46 (+/- 0.28)
+
+=====================================================
+
+
+=====================================================
+
+High correlation filter  (threshold:  0.75 )
+(this may take some time, can crash n>1000)
+Before:   821
+After:    461
+Removed:  360
+RFC Scores:   [0.57142857 0.57142857 0.57142857 0.71428571 0.57142857]
+Accuracy:    0.60 (+/- 0.11)
+
+=====================================================
+
+
+=====================================================
+
+High correlation filter  (threshold:  0.8 )
+(this may take some time, can crash n>1000)
+Before:   821
+After:    580
+Removed:  241
+RFC Scores:   [0.85714286 0.57142857 0.71428571 0.57142857 0.57142857]
+Accuracy:    0.66 (+/- 0.23)
+
+=====================================================
+
+
+=====================================================
+
+High correlation filter  (threshold:  0.8500000000000001 )
+(this may take some time, can crash n>1000)
+Before:   821
+After:    672
+Removed:  149
+RFC Scores:   [0.71428571 0.42857143 0.42857143 0.42857143 0.57142857]
+Accuracy:    0.51 (+/- 0.23)
+
+=====================================================
+
+
+=====================================================
+
+High correlation filter  (threshold:  0.9 )
+(this may take some time, can crash n>1000)
+Before:   821
+After:    724
+Removed:  97
+RFC Scores:   [0.57142857 0.28571429 0.42857143 0.42857143 0.85714286]
+Accuracy:    0.51 (+/- 0.39)
+
+=====================================================
+
+
+=====================================================
+
+ROUND:  1
+METHOD:  4 Model feature select
+
+=====================================================
+
+Feature selection from model (threshold:  None )
+Fitting
+Transforming
+Before:   821
+After:    224 True
+Removed:  597
+Cross validating
+RFC Scores:   [0.85714286 0.57142857 0.71428571 0.57142857 0.85714286]
+Accuracy:    0.71 (+/- 0.26)
+
+=====================================================
+
+
+=====================================================
+
+ROUND:  1
+METHOD:  5 Target correlation filter
+
+=====================================================
+
+Target correlation filter  (threshold:  0.05 )
+Before:   821
+After:    699
+Removed:  122
+RFC Scores:   [0.71428571 0.71428571 0.57142857 0.71428571 0.85714286]
+Accuracy:    0.71 (+/- 0.18)
+
+=====================================================
+
+
+=====================================================
+
+Target correlation filter  (threshold:  0.1 )
+Before:   821
+After:    577
+Removed:  244
+RFC Scores:   [0.85714286 0.42857143 0.71428571 0.71428571 1.        ]
+Accuracy:    0.74 (+/- 0.38)
+
+=====================================================
+
+
+=====================================================
+
+Target correlation filter  (threshold:  0.15000000000000002 )
+Before:   821
+After:    473
+Removed:  348
+RFC Scores:   [0.71428571 0.57142857 0.71428571 0.71428571 0.85714286]
+Accuracy:    0.71 (+/- 0.18)
+
+=====================================================
+
+
+=====================================================
+
+Target correlation filter  (threshold:  0.2 )
+Before:   821
+After:    373
+Removed:  448
+RFC Scores:   [0.71428571 0.57142857 0.71428571 0.57142857 0.85714286]
+Accuracy:    0.69 (+/- 0.21)
+
+=====================================================
+
+
+=====================================================
+
+Target correlation filter  (threshold:  0.25 )
+Before:   821
+After:    289
+Removed:  532
+RFC Scores:   [0.71428571 0.57142857 0.57142857 0.71428571 0.85714286]
+Accuracy:    0.69 (+/- 0.21)
+
+=====================================================
+
+
+=====================================================
+
+ROUND:  1
+METHOD:  6 Recursive feature elimination
+
+=====================================================
+
+Recursive feature elimination  (n features:  None )
+Feature extraction
+Fitting and Transforming
+Before:   821
+After:    410 True
+Removed:  411
+Cross validating
+RFC Scores:   [0.71428571 0.71428571 0.57142857 0.85714286 0.85714286]
+Accuracy:    0.74 (+/- 0.21)
+
+=====================================================
+
+
+=====================================================
+
+ROUND:  1
+METHOD:  7 Univariate feature selection
+
+=====================================================
+
+Univariate feature selection  (n features:  500 )
+Feature selection
+Fitting and Transforming
+Before:   821
+After:    500 True
+Removed:  321
+Cross validating
+RFC Scores:   [0.71428571 0.42857143 0.57142857 0.57142857 0.85714286]
+Accuracy:    0.63 (+/- 0.29)
+
+=====================================================
+
+
+
+
+ROUND 1 FINISHED
+
+
+
+2 25
+
+=====================================================
+
+Checking method:  0 / 24 1 Tree based selection None
+Score:  0.6  Var:  0.21380899352993954
+Removed:  22460
+
+=====================================================
+
+Checking method:  1 / 24 1 L1-based selection None
+Score:  0.48571428571428565  Var:  0.427617987059879
+Removed:  800
+
+=====================================================
+
+Checking method:  2 / 24 1 Variance filter 0.0
+Score:  0.39999999999999997  Var:  0.27994168488950605
+Removed:  0
+
+=====================================================
+
+Checking method:  3 / 24 1 Variance filter 0.0125
+Score:  0.34285714285714286  Var:  0.13997084244475302
+Removed:  181
+
+=====================================================
+
+Checking method:  4 / 24 1 Variance filter 0.025
+Score:  0.34285714285714286  Var:  0.13997084244475302
+Removed:  241
+
+=====================================================
+
+Checking method:  5 / 24 1 Variance filter 0.037500000000000006
+Score:  0.4  Var:  0.3331972511340172
+Removed:  273
+
+=====================================================
+
+Checking method:  6 / 24 1 Variance filter 0.05
+Score:  0.34285714285714286  Var:  0.2913725436338734
+Removed:  308
+
+=====================================================
+
+Checking method:  7 / 24 1 Recursive feature elimination w CV 1
+Score:  0.6857142857142857  Var:  0.2138089935299395
+Removed:  755
+
+=====================================================
+
+Checking method:  8 / 24 1 High correlation filter 0.5
+Score:  0.45714285714285713  Var:  0.2138089935299395
+Removed:  786
+
+=====================================================
+
+Checking method:  9 / 24 1 High correlation filter 0.55
+Score:  0.5142857142857142  Var:  0.29137254363387344
+Removed:  764
+
+=====================================================
+
+Checking method:  10 / 24 1 High correlation filter 0.6
+Score:  0.7142857142857143  Var:  0.36140316116210053
+Removed:  707
+
+=====================================================
+
+Checking method:  11 / 24 1 High correlation filter 0.65
+Score:  0.5142857142857142  Var:  0.3875617133214439
+Removed:  611
+
+=====================================================
+
+Checking method:  12 / 24 1 High correlation filter 0.7
+Score:  0.45714285714285713  Var:  0.2799416848895061
+Removed:  494
+
+=====================================================
+
+Checking method:  13 / 24 1 High correlation filter 0.75
+Score:  0.6  Var:  0.11428571428571432
+Removed:  360
+
+=====================================================
+
+Checking method:  14 / 24 1 High correlation filter 0.8
+Score:  0.6571428571428571  Var:  0.22857142857142856
+Removed:  241
+
+=====================================================
+
+Checking method:  15 / 24 1 High correlation filter 0.8500000000000001
+Score:  0.5142857142857142  Var:  0.22857142857142862
+Removed:  149
+
+=====================================================
+
+Checking method:  16 / 24 1 High correlation filter 0.9
+Score:  0.5142857142857142  Var:  0.38756171332144385
+Removed:  97
+
+=====================================================
+
+Checking method:  17 / 24 1 Model feature select None
+Score:  0.7142857142857143  Var:  0.2555506259999759
+Removed:  597
+
+=====================================================
+
+Checking method:  18 / 24 1 Target correlation filter 0.05
+Score:  0.7142857142857143  Var:  0.1807015805810502
+Removed:  122
+
+=====================================================
+
+Checking method:  19 / 24 1 Target correlation filter 0.1
+Score:  0.7428571428571429  Var:  0.37904283318347426
+Removed:  244
+
+=====================================================
+
+Checking method:  20 / 24 1 Target correlation filter 0.15000000000000002
+Score:  0.7142857142857143  Var:  0.1807015805810502
+Removed:  348
+
+=====================================================
+
+Checking method:  21 / 24 1 Target correlation filter 0.2
+Score:  0.6857142857142857  Var:  0.2138089935299395
+Removed:  448
+
+=====================================================
+
+Checking method:  22 / 24 1 Target correlation filter 0.25
+Score:  0.6857142857142857  Var:  0.2138089935299395
+Removed:  532
+
+=====================================================
+
+Checking method:  23 / 24 1 Recursive feature elimination None
+Score:  0.7428571428571429  Var:  0.21380899352993948
+Removed:  411
+Current best!!
+
+=====================================================
+
+Checking method:  24 / 24 1 Univariate feature selection 500
+Score:  0.6285714285714286  Var:  0.2913725436338734
+Removed:  321
+First: 1 1
+Second: 1 1
+
+=====================================================
+
+Recursive feature elimination  (n features:  None )
+Feature extraction
+Fitting and Transforming
+Before:   821
+After:    410 True
+Removed:  411
+Cross validating
+RFC Scores:   [0.71428571 0.71428571 0.57142857 0.85714286 0.85714286]
+Accuracy:    0.74 (+/- 0.21)
+Plotting importance
+
+=====================================================
+
+
+=====================================================
+
+
+
+
+
+TOP METHOD:   Recursive feature elimination 
+
+TOP SCORE:    0.7428571428571429  BEST VAR:     0.21380899352993948 
+
+Improvement:  0.02857142857142858                -0.04174163247003643 
+
+Removed:      411 New size:    410 
+
+Route:        [('Tree based selection', None), ('Recursive feature elimination', None)] 
+
+
+
+
+
+=====================================================
+
+ROUND:  2
+
+=====================================================
+
+ROUND:  2
+METHOD:  0 L1-based selection
+
+=====================================================
+
+L1-based selection  (threshold:  None )
+Fitting
+Transforming
+Before:   410
+After:    17 True
+Removed:  393
+Cross validating
+RFC Scores:   [0.14285714 0.14285714 0.71428571 0.57142857 0.42857143]
+Accuracy:    0.40 (+/- 0.46)
+
+=====================================================
+
+
+=====================================================
+
+ROUND:  2
+METHOD:  1 Variance filter
+
+=====================================================
+
+Removing features with low variance  (threshold:  0.0 )
+Fitting and Transforming
+Before:   410
+After:    410 True
+Removed:  0
+Cross validating
+RFC Scores:   [0.42857143 0.42857143 0.42857143 0.28571429 0.42857143]
+Accuracy:    0.40 (+/- 0.11)
+
+=====================================================
+
+
+=====================================================
+
+Removing features with low variance  (threshold:  0.0125 )
+Fitting and Transforming
+Before:   410
+After:    330 True
+Removed:  80
+Cross validating
+RFC Scores:   [0.42857143 0.28571429 0.42857143 0.28571429 0.42857143]
+Accuracy:    0.37 (+/- 0.14)
+
+=====================================================
+
+
+=====================================================
+
+Removing features with low variance  (threshold:  0.025 )
+Fitting and Transforming
+Before:   410
+After:    304 True
+Removed:  106
+Cross validating
+RFC Scores:   [0.42857143 0.28571429 0.71428571 0.28571429 0.42857143]
+Accuracy:    0.43 (+/- 0.31)
+
+=====================================================
+
+
+=====================================================
+
+Removing features with low variance  (threshold:  0.037500000000000006 )
+Fitting and Transforming
+Before:   410
+After:    290 True
+Removed:  120
+Cross validating
+RFC Scores:   [0.28571429 0.14285714 0.28571429 0.42857143 0.28571429]
+Accuracy:    0.29 (+/- 0.18)
+
+=====================================================
+
+
+=====================================================
+
+Removing features with low variance  (threshold:  0.05 )
+Fitting and Transforming
+Before:   410
+After:    274 True
+Removed:  136
+Cross validating
+RFC Scores:   [0.57142857 0.28571429 0.57142857 0.14285714 0.71428571]
+Accuracy:    0.46 (+/- 0.42)
+
+=====================================================
+
+
+=====================================================
+
+ROUND:  2
+METHOD:  2 Recursive feature elimination w CV
+
+=====================================================
+
+Recursive feature elimination w CV  (min features:  1 )
+Feature extraction
+Fitting and Transforming
+Before:   410
+After:    305 True
+Removed:  105
+Cross validating
+RFC Scores:   [0.71428571 0.71428571 0.85714286 0.85714286 0.85714286]
+Accuracy:    0.80 (+/- 0.14)
+
+=====================================================
+
+
+=====================================================
+
+ROUND:  2
+METHOD:  3 High correlation filter
+
+=====================================================
+
+High correlation filter  (threshold:  0.5 )
+(this may take some time, can crash n>1000)
+Before:   410
+After:    31
+Removed:  379
+RFC Scores:   [0.71428571 0.14285714 0.28571429 0.42857143 0.57142857]
+Accuracy:    0.43 (+/- 0.40)
+
+=====================================================
+
+
+=====================================================
+
+High correlation filter  (threshold:  0.55 )
+(this may take some time, can crash n>1000)
+Before:   410
+After:    53
+Removed:  357
+RFC Scores:   [0.57142857 0.28571429 0.57142857 0.57142857 0.71428571]
+Accuracy:    0.54 (+/- 0.28)
+
+=====================================================
+
+
+=====================================================
+
+High correlation filter  (threshold:  0.6 )
+(this may take some time, can crash n>1000)
+Before:   410
+After:    87
+Removed:  323
+RFC Scores:   [0.57142857 0.57142857 0.85714286 0.71428571 0.85714286]
+Accuracy:    0.71 (+/- 0.26)
+
+=====================================================
+
+
+=====================================================
+
+High correlation filter  (threshold:  0.65 )
+(this may take some time, can crash n>1000)
+Before:   410
+After:    154
+Removed:  256
+RFC Scores:   [0.57142857 0.42857143 0.85714286 0.71428571 0.71428571]
+Accuracy:    0.66 (+/- 0.29)
+
+=====================================================
+
+
+=====================================================
+
+High correlation filter  (threshold:  0.7 )
+(this may take some time, can crash n>1000)
+Before:   410
+After:    204
+Removed:  206
+RFC Scores:   [0.57142857 0.42857143 0.71428571 0.85714286 0.71428571]
+Accuracy:    0.66 (+/- 0.29)
+
+=====================================================
+
+
+=====================================================
+
+High correlation filter  (threshold:  0.75 )
+(this may take some time, can crash n>1000)
+Before:   410
+After:    249
+Removed:  161
+RFC Scores:   [0.57142857 0.57142857 0.71428571 0.85714286 0.71428571]
+Accuracy:    0.69 (+/- 0.21)
+
+=====================================================
+
+
+=====================================================
+
+High correlation filter  (threshold:  0.8 )
+(this may take some time, can crash n>1000)
+Before:   410
+After:    296
+Removed:  114
+RFC Scores:   [0.85714286 0.57142857 0.57142857 0.85714286 0.71428571]
+Accuracy:    0.71 (+/- 0.26)
+
+=====================================================
+
+
+=====================================================
+
+High correlation filter  (threshold:  0.8500000000000001 )
+(this may take some time, can crash n>1000)
+Before:   410
+After:    335
+Removed:  75
+RFC Scores:   [0.85714286 0.57142857 0.57142857 0.85714286 0.57142857]
+Accuracy:    0.69 (+/- 0.28)
+
+=====================================================
+
+
+=====================================================
+
+High correlation filter  (threshold:  0.9 )
+(this may take some time, can crash n>1000)
+Before:   410
+After:    364
+Removed:  46
+RFC Scores:   [0.71428571 0.57142857 0.57142857 0.85714286 0.71428571]
+Accuracy:    0.69 (+/- 0.21)
+
+=====================================================
+
+
+=====================================================
+
+ROUND:  2
+METHOD:  4 Model feature select
+
+=====================================================
+
+Feature selection from model (threshold:  None )
+Fitting
+Transforming
+Before:   410
+After:    131 True
+Removed:  279
+Cross validating
+RFC Scores:   [0.71428571 0.71428571 0.71428571 0.71428571 0.85714286]
+Accuracy:    0.74 (+/- 0.11)
+
+=====================================================
+
+
+=====================================================
+
+ROUND:  2
+METHOD:  5 Target correlation filter
+
+=====================================================
+
+Target correlation filter  (threshold:  0.05 )
+Before:   410
+After:    353
+Removed:  57
+RFC Scores:   [0.71428571 0.71428571 0.85714286 0.85714286 0.85714286]
+Accuracy:    0.80 (+/- 0.14)
+
+=====================================================
+
+
+=====================================================
+
+Target correlation filter  (threshold:  0.1 )
+Before:   410
+After:    292
+Removed:  118
+RFC Scores:   [0.71428571 0.28571429 0.57142857 0.71428571 0.85714286]
+Accuracy:    0.63 (+/- 0.39)
+
+=====================================================
+
+
+=====================================================
+
+Target correlation filter  (threshold:  0.15000000000000002 )
+Before:   410
+After:    237
+Removed:  173
+RFC Scores:   [0.42857143 0.42857143 0.57142857 0.71428571 0.71428571]
+Accuracy:    0.57 (+/- 0.26)
+
+=====================================================
+
+
+=====================================================
+
+Target correlation filter  (threshold:  0.2 )
+Before:   410
+After:    190
+Removed:  220
+RFC Scores:   [0.71428571 0.42857143 0.57142857 0.71428571 0.85714286]
+Accuracy:    0.66 (+/- 0.29)
+
+=====================================================
+
+
+=====================================================
+
+Target correlation filter  (threshold:  0.25 )
+Before:   410
+After:    148
+Removed:  262
+RFC Scores:   [0.42857143 0.85714286 0.71428571 0.71428571 0.57142857]
+Accuracy:    0.66 (+/- 0.29)
+
+=====================================================
+
+
+=====================================================
+
+ROUND:  2
+METHOD:  6 Recursive feature elimination
+
+=====================================================
+
+Recursive feature elimination  (n features:  None )
+Feature extraction
+Fitting and Transforming
+Before:   410
+After:    205 True
+Removed:  205
+Cross validating
+RFC Scores:   [0.57142857 0.71428571 0.57142857 0.71428571 0.71428571]
+Accuracy:    0.66 (+/- 0.14)
+
+=====================================================
+
+
+=====================================================
+
+ROUND:  2
+METHOD:  7 Univariate feature selection
+
+
+
+ROUND 2 FINISHED
+
+
+
+3 24
+
+=====================================================
+
+Checking method:  0 / 23 2 Recursive feature elimination None
+Score:  0.7428571428571429  Var:  0.21380899352993948
+Removed:  411
+
+=====================================================
+
+Checking method:  1 / 23 2 L1-based selection None
+Score:  0.4  Var:  0.45714285714285713
+Removed:  393
+
+=====================================================
+
+Checking method:  2 / 23 2 Variance filter 0.0
+Score:  0.39999999999999997  Var:  0.11428571428571428
+Removed:  0
+
+=====================================================
+
+Checking method:  3 / 23 2 Variance filter 0.0125
+Score:  0.3714285714285714  Var:  0.13997084244475302
+Removed:  80
+
+=====================================================
+
+Checking method:  4 / 23 2 Variance filter 0.025
+Score:  0.4285714285714285  Var:  0.31298431857438064
+Removed:  106
+
+=====================================================
+
+Checking method:  5 / 23 2 Variance filter 0.037500000000000006
+Score:  0.2857142857142857  Var:  0.18070158058105024
+Removed:  120
+
+=====================================================
+
+Checking method:  6 / 23 2 Variance filter 0.05
+Score:  0.45714285714285713  Var:  0.4199125273342591
+Removed:  136
+
+=====================================================
+
+Checking method:  7 / 23 2 Recursive feature elimination w CV 1
+Score:  0.8  Var:  0.13997084244475297
+Removed:  105
+Current best!!
+
+=====================================================
+
+Checking method:  8 / 23 2 High correlation filter 0.5
+Score:  0.42857142857142855  Var:  0.4040610178208843
+Removed:  379
+
+=====================================================
+
+Checking method:  9 / 23 2 High correlation filter 0.55
+Score:  0.5428571428571428  Var:  0.27994168488950605
+Removed:  357
+
+=====================================================
+
+Checking method:  10 / 23 2 High correlation filter 0.6
+Score:  0.7142857142857143  Var:  0.2555506259999759
+Removed:  323
+
+=====================================================
+
+Checking method:  11 / 23 2 High correlation filter 0.65
+Score:  0.6571428571428573  Var:  0.2913725436338734
+Removed:  256
+
+=====================================================
+
+Checking method:  12 / 23 2 High correlation filter 0.7
+Score:  0.6571428571428573  Var:  0.2913725436338734
+Removed:  206
+
+=====================================================
+
+Checking method:  13 / 23 2 High correlation filter 0.75
+Score:  0.6857142857142857  Var:  0.2138089935299395
+Removed:  161
+
+=====================================================
+
+Checking method:  14 / 23 2 High correlation filter 0.8
+Score:  0.7142857142857142  Var:  0.2555506259999759
+Removed:  114
+
+=====================================================
+
+Checking method:  15 / 23 2 High correlation filter 0.8500000000000001
+Score:  0.6857142857142856  Var:  0.27994168488950605
+Removed:  75
+
+=====================================================
+
+Checking method:  16 / 23 2 High correlation filter 0.9
+Score:  0.6857142857142857  Var:  0.2138089935299395
+Removed:  46
+
+=====================================================
+
+Checking method:  17 / 23 2 Model feature select None
+Score:  0.7428571428571429  Var:  0.11428571428571423
+Removed:  279
+
+=====================================================
+
+Checking method:  18 / 23 2 Target correlation filter 0.05
+Score:  0.8  Var:  0.13997084244475297
+Removed:  57
+
+=====================================================
+
+Checking method:  19 / 23 2 Target correlation filter 0.1
+Score:  0.6285714285714286  Var:  0.3875617133214439
+Removed:  118
+
+=====================================================
+
+Checking method:  20 / 23 2 Target correlation filter 0.15000000000000002
+Score:  0.5714285714285714  Var:  0.255550625999976
+Removed:  173
+
+=====================================================
+
+Checking method:  21 / 23 2 Target correlation filter 0.2
+Score:  0.6571428571428571  Var:  0.2913725436338734
+Removed:  220
+
+=====================================================
+
+Checking method:  22 / 23 2 Target correlation filter 0.25
+Score:  0.6571428571428571  Var:  0.2913725436338734
+Removed:  262
+
+=====================================================
+
+Checking method:  23 / 23 2 Recursive feature elimination None
+Score:  0.6571428571428571  Var:  0.13997084244475308
+Removed:  205
+First: 2 2
+Second: 2 2
+
+=====================================================
+
+Recursive feature elimination w CV  (min features:  1 )
+Feature extraction
+Fitting and Transforming
+Before:   410
+After:    305 True
+Removed:  105
+Cross validating
+RFC Scores:   [0.71428571 0.71428571 0.85714286 0.85714286 0.85714286]
+Accuracy:    0.80 (+/- 0.14)
+Plotting importance
+
+=====================================================
+
+
+=====================================================
+
+
+
+
+
+TOP METHOD:   Recursive feature elimination w CV 
+
+TOP SCORE:    0.8  BEST VAR:     0.13997084244475297 
+
+Improvement:  0.05714285714285716                -0.07383815108518652 
+
+Removed:      105 New size:    305 
+
+Route:        [('Tree based selection', None), ('Recursive feature elimination', None), ('Recursive feature elimination w CV', 1)] 
+
+
+
+
+
+=====================================================
+
+ROUND:  3
+
+=====================================================
+
+ROUND:  3
+METHOD:  0 L1-based selection
+
+=====================================================
+
+L1-based selection  (threshold:  None )
+Fitting
+Transforming
+Before:   305
+After:    15 True
+Removed:  290
+Cross validating
+RFC Scores:   [0.42857143 0.28571429 0.42857143 0.42857143 0.42857143]
+Accuracy:    0.40 (+/- 0.11)
+
+=====================================================
+
+
+=====================================================
+
+ROUND:  3
+METHOD:  1 Variance filter
+
+=====================================================
+
+Removing features with low variance  (threshold:  0.0 )
+Fitting and Transforming
+Before:   305
+After:    305 True
+Removed:  0
+Cross validating
+RFC Scores:   [0.57142857 0.28571429 0.57142857 0.42857143 0.42857143]
+Accuracy:    0.46 (+/- 0.21)
+
+=====================================================
+
+
+=====================================================
+
+Removing features with low variance  (threshold:  0.0125 )
+Fitting and Transforming
+Before:   305
+After:    242 True
+Removed:  63
+Cross validating
+RFC Scores:   [0.57142857 0.14285714 0.14285714 0.57142857 0.28571429]
+Accuracy:    0.34 (+/- 0.39)
+
+=====================================================
+
+
+=====================================================
+
+Removing features with low variance  (threshold:  0.025 )
+Fitting and Transforming
+Before:   305
+After:    225 True
+Removed:  80
+Cross validating
+RFC Scores:   [0.42857143 0.28571429 0.42857143 0.57142857 0.57142857]
+Accuracy:    0.46 (+/- 0.21)
+
+=====================================================
+
+
+=====================================================
+
+Removing features with low variance  (threshold:  0.037500000000000006 )
+Fitting and Transforming
+Before:   305
+After:    217 True
+Removed:  88
+Cross validating
+RFC Scores:   [0.28571429 0.57142857 0.28571429 0.42857143 0.28571429]
+Accuracy:    0.37 (+/- 0.23)
+
+=====================================================
+
+
+=====================================================
+
+Removing features with low variance  (threshold:  0.05 )
+Fitting and Transforming
+Before:   305
+After:    204 True
+Removed:  101
+Cross validating
+RFC Scores:   [0.42857143 0.14285714 0.42857143 0.57142857 0.57142857]
+Accuracy:    0.43 (+/- 0.31)
+
+=====================================================
+
+
+=====================================================
+
+ROUND:  3
+METHOD:  2 High correlation filter
+
+=====================================================
+
+High correlation filter  (threshold:  0.5 )
+(this may take some time, can crash n>1000)
+Before:   305
+After:    37
+Removed:  268
+RFC Scores:   [0.42857143 0.71428571 0.57142857 0.57142857 0.85714286]
+Accuracy:    0.63 (+/- 0.29)
+
+=====================================================
+
+
+=====================================================
+
+High correlation filter  (threshold:  0.55 )
+(this may take some time, can crash n>1000)
+Before:   305
+After:    50
+Removed:  255
+RFC Scores:   [0.57142857 0.42857143 0.57142857 0.42857143 0.85714286]
+Accuracy:    0.57 (+/- 0.31)
+
+=====================================================
+
+
+=====================================================
+
+High correlation filter  (threshold:  0.6 )
+(this may take some time, can crash n>1000)
+Before:   305
+After:    80
+Removed:  225
+RFC Scores:   [0.71428571 0.57142857 0.85714286 0.71428571 0.71428571]
+Accuracy:    0.71 (+/- 0.18)
+
+=====================================================
+
+
+=====================================================
+
+High correlation filter  (threshold:  0.65 )
+(this may take some time, can crash n>1000)
+Before:   305
+After:    126
+Removed:  179
+RFC Scores:   [0.57142857 0.71428571 0.85714286 0.85714286 0.42857143]
+Accuracy:    0.69 (+/- 0.33)
+
+=====================================================
+
+
+=====================================================
+
+High correlation filter  (threshold:  0.7 )
+(this may take some time, can crash n>1000)
+Before:   305
+After:    161
+Removed:  144
+RFC Scores:   [0.57142857 0.85714286 0.71428571 0.85714286 0.71428571]
+Accuracy:    0.74 (+/- 0.21)
+
+=====================================================
+
+
+=====================================================
+
+High correlation filter  (threshold:  0.75 )
+(this may take some time, can crash n>1000)
+Before:   305
+After:    194
+Removed:  111
+RFC Scores:   [0.71428571 0.42857143 0.57142857 0.85714286 0.57142857]
+Accuracy:    0.63 (+/- 0.29)
+
+=====================================================
+
+
+=====================================================
+
+High correlation filter  (threshold:  0.8 )
+(this may take some time, can crash n>1000)
+Before:   305
+After:    227
+Removed:  78
+RFC Scores:   [0.71428571 0.71428571 0.71428571 0.71428571 0.57142857]
+Accuracy:    0.69 (+/- 0.11)
+
+=====================================================
+
+
+=====================================================
+
+High correlation filter  (threshold:  0.8500000000000001 )
+(this may take some time, can crash n>1000)
+Before:   305
+After:    255
+Removed:  50
+RFC Scores:   [0.71428571 0.42857143 0.71428571 0.85714286 0.71428571]
+Accuracy:    0.69 (+/- 0.28)
+
+=====================================================
+
+
+=====================================================
+
+High correlation filter  (threshold:  0.9 )
+(this may take some time, can crash n>1000)
+Before:   305
+After:    275
+Removed:  30
+RFC Scores:   [0.71428571 0.42857143 0.85714286 0.85714286 0.71428571]
+Accuracy:    0.71 (+/- 0.31)
+
+=====================================================
+
+
+=====================================================
+
+ROUND:  3
+METHOD:  3 Model feature select
+
+=====================================================
+
+Feature selection from model (threshold:  None )
+Fitting
+Transforming
+Before:   305
+After:    100 True
+Removed:  205
+Cross validating
+RFC Scores:   [0.57142857 0.85714286 0.71428571 0.71428571 0.85714286]
+Accuracy:    0.74 (+/- 0.21)
+
+=====================================================
+
+
+=====================================================
+
+ROUND:  3
+METHOD:  4 Target correlation filter
+
+=====================================================
+
+Target correlation filter  (threshold:  0.05 )
+Before:   305
+After:    265
+Removed:  40
+RFC Scores:   [0.57142857 0.57142857 0.57142857 0.71428571 0.85714286]
+Accuracy:    0.66 (+/- 0.23)
+
+=====================================================
+
+
+=====================================================
+
+Target correlation filter  (threshold:  0.1 )
+Before:   305
+After:    220
+Removed:  85
+RFC Scores:   [0.57142857 0.71428571 0.71428571 0.85714286 0.85714286]
+Accuracy:    0.74 (+/- 0.21)
+
+=====================================================
+
+
+=====================================================
+
+Target correlation filter  (threshold:  0.15000000000000002 )
+Before:   305
+After:    180
+Removed:  125
+RFC Scores:   [0.71428571 0.42857143 0.57142857 0.71428571 0.57142857]
+Accuracy:    0.60 (+/- 0.21)
+
+=====================================================
+
+
+=====================================================
+
+Target correlation filter  (threshold:  0.2 )
+Before:   305
+After:    144
+Removed:  161
+RFC Scores:   [0.57142857 0.42857143 0.57142857 0.85714286 0.57142857]
+Accuracy:    0.60 (+/- 0.28)
+
+=====================================================
+
+
+=====================================================
+
+Target correlation filter  (threshold:  0.25 )
+Before:   305
+After:    115
+Removed:  190
+RFC Scores:   [0.71428571 0.57142857 0.71428571 0.71428571 0.71428571]
+Accuracy:    0.69 (+/- 0.11)
+
+=====================================================
+
+
+=====================================================
+
+ROUND:  3
+METHOD:  5 Recursive feature elimination
+
+=====================================================
+
+Recursive feature elimination  (n features:  None )
+Feature extraction
+Fitting and Transforming
+Before:   305
+After:    152 True
+Removed:  153
+Cross validating
+RFC Scores:   [0.57142857 0.71428571 0.71428571 0.71428571 0.71428571]
+Accuracy:    0.69 (+/- 0.11)
+
+=====================================================
+
+
+=====================================================
+
+ROUND:  3
+METHOD:  6 Univariate feature selection
+
+
+
+ROUND 3 FINISHED
+
+
+
+4 23
+
+=====================================================
+
+Checking method:  0 / 22 3 Recursive feature elimination w CV 1
+Score:  0.8  Var:  0.13997084244475297
+Removed:  105
+
+=====================================================
+
+Checking method:  1 / 22 3 L1-based selection None
+Score:  0.4  Var:  0.11428571428571428
+Removed:  290
+
+=====================================================
+
+Checking method:  2 / 22 3 Variance filter 0.0
+Score:  0.45714285714285713  Var:  0.2138089935299395
+Removed:  0
+
+=====================================================
+
+Checking method:  3 / 22 3 Variance filter 0.0125
+Score:  0.3428571428571428  Var:  0.38756171332144385
+Removed:  63
+
+=====================================================
+
+Checking method:  4 / 22 3 Variance filter 0.025
+Score:  0.45714285714285713  Var:  0.21380899352993948
+Removed:  80
+
+=====================================================
+
+Checking method:  5 / 22 3 Variance filter 0.037500000000000006
+Score:  0.37142857142857144  Var:  0.22857142857142856
+Removed:  88
+
+=====================================================
+
+Checking method:  6 / 22 3 Variance filter 0.05
+Score:  0.42857142857142855  Var:  0.3129843185743806
+Removed:  101
+
+=====================================================
+
+Checking method:  7 / 22 3 High correlation filter 0.5
+Score:  0.6285714285714286  Var:  0.2913725436338734
+Removed:  268
+
+=====================================================
+
+Checking method:  8 / 22 3 High correlation filter 0.55
+Score:  0.5714285714285714  Var:  0.31298431857438064
+Removed:  255
+
+=====================================================
+
+Checking method:  9 / 22 3 High correlation filter 0.6
+Score:  0.7142857142857143  Var:  0.1807015805810502
+Removed:  225
+
+=====================================================
+
+Checking method:  10 / 22 3 High correlation filter 0.65
+Score:  0.6857142857142857  Var:  0.33319725113401716
+Removed:  179
+
+=====================================================
+
+Checking method:  11 / 22 3 High correlation filter 0.7
+Score:  0.7428571428571429  Var:  0.21380899352993948
+Removed:  144
+
+=====================================================
+
+Checking method:  12 / 22 3 High correlation filter 0.75
+Score:  0.6285714285714284  Var:  0.2913725436338734
+Removed:  111
+
+=====================================================
+
+Checking method:  13 / 22 3 High correlation filter 0.8
+Score:  0.6857142857142857  Var:  0.11428571428571432
+Removed:  78
+
+=====================================================
+
+Checking method:  14 / 22 3 High correlation filter 0.8500000000000001
+Score:  0.6857142857142857  Var:  0.27994168488950605
+Removed:  50
+
+=====================================================
+
+Checking method:  15 / 22 3 High correlation filter 0.9
+Score:  0.7142857142857143  Var:  0.3129843185743806
+Removed:  30
+
+=====================================================
+
+Checking method:  16 / 22 3 Model feature select None
+Score:  0.7428571428571429  Var:  0.21380899352993948
+Removed:  205
+
+=====================================================
+
+Checking method:  17 / 22 3 Target correlation filter 0.05
+Score:  0.6571428571428571  Var:  0.22857142857142856
+Removed:  40
+
+=====================================================
+
+Checking method:  18 / 22 3 Target correlation filter 0.1
+Score:  0.7428571428571429  Var:  0.21380899352993948
+Removed:  85
+
+=====================================================
+
+Checking method:  19 / 22 3 Target correlation filter 0.15000000000000002
+Score:  0.6  Var:  0.21380899352993957
+Removed:  125
+
+=====================================================
+
+Checking method:  20 / 22 3 Target correlation filter 0.2
+Score:  0.6  Var:  0.27994168488950605
+Removed:  161
+
+=====================================================
+
+Checking method:  21 / 22 3 Target correlation filter 0.25
+Score:  0.6857142857142857  Var:  0.11428571428571432
+Removed:  190
+
+=====================================================
+
+Checking method:  22 / 22 3 Recursive feature elimination None
+Score:  0.6857142857142857  Var:  0.11428571428571432
+Removed:  153
+First: 2 3
+
+=====================================================
+
+
+
+
+
+DIDN'T BEAT LAST ROUND
+Total number of rounds:  2 
+
+TOP SCORE:    0.8  BEST VAR:     0.13997084244475297 
+
+Removed:      22976 New size:    305 
+
+Route:        [('Tree based selection', None), ('Recursive feature elimination', None), ('Recursive feature elimination w CV', 1)] 
+
+
+
+
+
+=====================================================
+
+[{'method': 'Tree based selection', 'threshold': None, 'size': 817, 'removed': 22464, 'rfc_scores': array([0.85714286, 0.57142857, 0.71428571, 0.57142857, 0.85714286]), 'time-taken': 0.5757803916931152}, {'method': 'Recursive feature elimination', 'threshold': None, 'size': 410, 'removed': 411, 'rfc_scores': array([0.71428571, 0.71428571, 0.57142857, 0.85714286, 0.85714286]), 'time-taken': 36.26637244224548}, {'method': 'Recursive feature elimination w CV', 'threshold': 1, 'size': 305, 'removed': 105, 'rfc_scores': array([0.71428571, 0.71428571, 0.85714286, 0.85714286, 0.85714286]), 'time-taken': 118.61692810058594}]
+Base RFC accuracy:    0.2857142857142857
+Base RFC class rep:
+              precision    recall  f1-score   support
+
+           6       1.00      0.00      0.00         1
+           7       0.50      0.50      0.50         2
+           8       0.20      1.00      0.33         1
+           9       1.00      0.00      0.00         3
+
+    accuracy                           0.29         7
+   macro avg       0.68      0.38      0.21         7
+weighted avg       0.74      0.29      0.19         7
+
+Cross validating
+RFC Scores:   [0.42857143 0.57142857 0.28571429 0.28571429 0.42857143]
+Accuracy:    0.40 (+/- 0.21)
+Base Num features:    23281
+
+=====================================================
+
+Features selected: 
+
+=====================================================
+
+Train gene shape:     (28, 305)
+
+=====================================================
+
+TOP 3:  LIX1      100.000000
+GPT2       84.344468
+GRIN2B     77.383371
+dtype: float64
+RFC accuracy:     0.2857142857142857
+RFC classification report:
+              precision    recall  f1-score   support
+
+           6       0.00      0.00      0.00         1
+           7       0.50      0.50      0.50         2
+           8       0.25      1.00      0.40         1
+           9       1.00      0.00      0.00         3
+
+    accuracy                           0.29         7
+   macro avg       0.44      0.38      0.23         7
+weighted avg       0.61      0.29      0.20         7
+
+Cross validating
+RFC Scores:   [0.71428571 0.71428571 0.85714286 0.85714286 0.85714286]
+Accuracy:    0.80 (+/- 0.14)
+Num features:     305
+
+=====================================================
+
+Method Log
+[{'method': 'Tree based selection', 'threshold': None, 'size': 817, 'removed': 22464, 'rfc_scores': array([0.85714286, 0.57142857, 0.71428571, 0.57142857, 0.85714286]), 'time-taken': 0.5757803916931152}, {'method': 'Recursive feature elimination', 'threshold': None, 'size': 410, 'removed': 411, 'rfc_scores': array([0.71428571, 0.71428571, 0.57142857, 0.85714286, 0.85714286]), 'time-taken': 36.26637244224548}, {'method': 'Recursive feature elimination w CV', 'threshold': 1, 'size': 305, 'removed': 105, 'rfc_scores': array([0.71428571, 0.71428571, 0.85714286, 0.85714286, 0.85714286]), 'time-taken': 118.61692810058594}]
+
+=====================================================
+
+Visualise cross validation scores methodlog
+
+Plotting top2 classification
+
+Plotting confusion matrix
+
+Plotting validation curve
+
+Plotting learning curve
+
+
+=====================================================
+
+Grid searching:
+Fitting 5 folds for each of 7000 candidates, totalling 35000 fits
+Best model:   RandomForestClassifier(bootstrap=True, ccp_alpha=0.0, class_weight=None,
+                       criterion='gini', max_depth=5, max_features='auto',
+                       max_leaf_nodes=None, max_samples=None,
+                       min_impurity_decrease=0.0, min_impurity_split=None,
+                       min_samples_leaf=2, min_samples_split=2,
+                       min_weight_fraction_leaf=0.0, n_estimators=34,
+                       n_jobs=None, oob_score=False, random_state=None,
+                       verbose=0, warm_start=False)
+Best params:  {'max_depth': 5, 'min_samples_leaf': 2, 'min_samples_split': 2, 'n_estimators': 34}
+Best Score:   0.9333333333333333
+Best Var:     0.16329931618554516
+Model Performance
+Average Error: 0.8571 degrees.
+Accuracy = 89.57%.
+
+=====================================================
+
+TOP 3:  PIDD        100.000000
+SLC39A13     76.348911
+ESM1         69.171338
+dtype: float64
+RFC accuracy:     0.2857142857142857
+RFC classification report:
+              precision    recall  f1-score   support
+
+           6       1.00      0.00      0.00         1
+           7       0.50      0.50      0.50         2
+           8       0.20      1.00      0.33         1
+           9       1.00      0.00      0.00         3
+
+    accuracy                           0.29         7
+   macro avg       0.68      0.38      0.21         7
+weighted avg       0.74      0.29      0.19         7
+
+Cross validating
+RFC Scores:   [0.71428571 0.71428571 0.85714286 0.85714286 0.85714286]
+Accuracy:    0.80 (+/- 0.14)
+Num features:     305
+
+=====================================================
+
+Plotting top2 classification
+
+Plotting confusion matrix
+
+Plotting learning curve
+
