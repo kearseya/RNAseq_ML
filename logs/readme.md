@@ -3,7 +3,6 @@
 Genereated with script:
 
 ```bash
-#!/bin/bash
 for i in {1..30};
 	time python3 -u test_script.py > logs/test_$i.log;
 done
@@ -23,8 +22,6 @@ So the average time for runnigng a full script was **17.95 minutes**.
 The routes were then extracted using:
 
 ```bash
-#!/bin/bash
-
 for i in logs/*.log;
 	do cat $i  | grep 'Route' | tail -1 | sed -e 's/Route:        //g' >> routes_temp.txt;
 done
