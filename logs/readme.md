@@ -4,11 +4,11 @@ Genereated with script (graphing commands were excluded to allow for continuous 
 
 ```bash
 for i in {1..30};
-	time python3 -u test_script.py > logs/test_$i.log;
+	time python3 -u test_script.py > logs/test_$i.log 2> times1_30;
 done
 ```
 
-The STDERR containing the time data was manually copied and pasted into the time1_30 file, the real times were then extracted using:
+The real times were then extracted using:
 
 ```bash
 cat time1_30 | grep "real" | sed -e 's/real\t//g' | awk -F 'm' '{sum += $1*60 + $2} END { print sum/60/60 }'
