@@ -23,7 +23,7 @@ So the average time for runnigng a full script was **17.95 minutes**.
 A .csv file of the baseline, model after feature selection, and model after hypertuning cross validation averages and variance, along with the number of features and time taken for script to run was then made using:
 
 ```bash
-for i in logs/*.log; 
+for i in logs/test_{1..30}.log; 
 	do row=''; 
 	tab=$(cat $i | sed -n -e '/Base RFC accuracy/,$p' | head -16 | grep -oP '(?<=Accuracy:    )[0-9.]+' | awk '{print $0, ","}'); 
 	row="$row$tab";
