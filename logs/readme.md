@@ -48,6 +48,9 @@ rm realtimes
 rm trials.csv
 ```
 
+![Stage accuracy](../example_figs/stageacc.png)
+
+
 
 The routes were then extracted using:
 
@@ -62,7 +65,7 @@ cat routes.txt | sed -e 's/\[(//g' | sed -e 's/)]//g' | sed -e 's/(//g' | sed -e
 ```
 
 
+The resulting routes.csv file was then used to generate the graph.
 
+![Routes graph](../example_figs/Methods_1-30.png)
 
-
-The resulting routes.txt file was then used to generate the graphs.
