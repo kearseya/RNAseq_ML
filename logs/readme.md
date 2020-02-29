@@ -52,13 +52,13 @@ rm trials.csv
 The routes were then extracted using:
 
 ```bash
-for i in logs/*.log;
+for i in logs/test_{1..30}.log;
 	do cat $i  | grep 'Route' | tail -1 | sed -e 's/Route:        //g' >> routes_temp.txt;
 done
 
 sed '$!s/$/,/' routes_temp.txt > routes.txt
-
 rm routes_temp.txt
+cat routes.txt | sed -e 's/\[(//g' | sed -e 's/)]//g' | sed -e 's/(//g' | sed -e 's/)//g' > routes.csv
 ```
 
 
