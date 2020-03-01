@@ -67,5 +67,5 @@ cat routes.txt | sed -e 's/\[(//g' | sed -e 's/)]//g' | sed -e 's/(//g' | sed -e
 
 The resulting routes.csv file was then used to generate the graph.
 
-![Routes graph](../example_figs/Methods_1-30_all.png)
+![Routes graph](../example_figs/methods_1-30_all.png)
 
