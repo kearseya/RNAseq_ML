@@ -139,7 +139,9 @@ def plotimportances(in_feature_importances, gene_data, num_features, method, thr
     plt.tight_layout()
     if show_meth == "save":
         plt.savefig(fname = ("figures/importances/"+method+str(threshold)), format='png')
+        #plt.close()
     if show_meth == "show":
+        #plt.close()
         plt.show()
 #plotimportances(initial_feature_importance, gene_data, 40, "Initial")
 
@@ -153,6 +155,7 @@ def plot_perm_importances(model, gene_data, gleason_score, method, setname):
            vert=False, labels=gene_data.columns[sorted_idx])
     ax.set_title("Permutation Importances: "+method+" ("+setname+" set)")
     fig.tight_layout()
+    #plt.close()
     plt.show()
 
 
@@ -277,7 +280,7 @@ def correlation_filter(gene_data, gleason_score, corr_thresh=0.8, imp_plot="save
     #plot correlation matrix
     matrix = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(np.bool))
     #sns.heatmap(matrix)
-    #plt.show()
+    plt.show()
 
     #find index of feature columns with high correlation
     to_drop = [column for column in matrix.columns if any(matrix[column] > corr_thresh)]
@@ -917,7 +920,9 @@ def visualise_accuracy_methodlog(methodlog, show_meth="show"):
     #ax.legend( (rects1[0]), ('Random Forest Classifier') ) #, rects2[0]), ('Logistic Regression', 'Random Forest Classifier') )
     if show_meth == "save":
         plt.savefig("Score vis")
+        #plt.close()
     if show_meth == "show":
+        #plt.close()
         plt.show()
 
 
@@ -957,6 +962,7 @@ def val_curve_gen(gene_data, gleason_score, mod=RandomForestClassifier()):
     plt.ylabel("Accuracy Score")
     plt.tight_layout()
     plt.legend(loc="best")
+    #plt.close()
     plt.show()
 
 
@@ -987,6 +993,7 @@ def plot_learning_curve(estimator, gene_data, gleason_score, ylim=None, cv=None,
             label="Cross-validation score")
 
     plt.legend(loc="best")
+    #plt.close()
     plt.show()
 
 
@@ -1106,6 +1113,7 @@ def plot_test_classifier(gene_train, gleason_train, gene_test, gleason_test, mod
     plt.contourf(xx, yy, Z, alpha=0.4)
     plt.title("Classify test samples")
 
+    #plt.close()
     plt.show()
 
 
@@ -1123,6 +1131,7 @@ def plot_3D_top3(top3):
     ax.set_ylabel(second)
     ax.set_zlabel(third)
 
+    #plt.close()
     plt.show()
 
 
