@@ -87,3 +87,30 @@ ggplot(topqmethgathertable, aes(x=key, y=n, fill=value)) +
 
 unique(topqmethgathertable$value)
 
+
+
+
+
+
+bscores <- c(0.7933333333333333,
+             0.82,
+             0.8933333333333333,
+             0.9,
+             0.86)
+bvars <- c(0.3873557079022387,
+           0.03265986323710903,
+           0.17587874611030554,
+           0.16329931618554516,
+           0.25438378704451886)
+
+plot(data$FeatAcc, data$TuneAcc)
+summary(data)
+mean(bvars)
+
+tree <- c(104, 96, 70, 74, 122)
+feat <- c(322, 390, 220, 234, 466)
+#plot(feat, tree)
+cor.test(feat, tree)
+
+feat/tree
+
