@@ -39,6 +39,8 @@ for i in logs/test_{1..30}.log;
 	row="$row$tab";
 	tab=$(cat $i | sed -n -e '/DIDN/,$p' | head -6 | tail -1 | grep -oP '(?<=New size:    )[0-9]+' | sed -e 's/New size:    //g' | awk '{print $0 ","}');
 	row=$row$tab;
+	tab=$(cat $i | grep -oP '(?<=n_estimators=)[0-9]+' | awk '{print $0 ","}'); 
+	row="$row$tab";	
 	echo $row >> trials.csv; 
 done
 
