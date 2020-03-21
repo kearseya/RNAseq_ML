@@ -4,7 +4,7 @@ library(reshape2)
 #Read in data and add column names
 filename <- "/home/alex/Desktop/ML/acc_var.csv"
 data <- read_csv(filename, col_names = F)
-colnames(data) <- c("BaseAcc", "BaseVar", "FeatAcc", "FeatVar", "TuneAcc", "TuneVar", "NumFeat", "TimeTaken")
+colnames(data) <- c("BaseAcc", "BaseVar", "FeatAcc", "FeatVar", "TuneAcc", "TuneVar", "NumFeat", "NumTrees", "TimeTaken")
 #data
 summary(data)
 
@@ -88,29 +88,44 @@ ggplot(topqmethgathertable, aes(x=key, y=n, fill=value)) +
 unique(topqmethgathertable$value)
 
 
+plot(data$FeatAcc, data$TuneAcc)
+cor(data$FeatAcc, data$TuneAcc)
 
 
+cor.test(data$NumFeat, data$TuneAcc)
+plot(data$NumFeat, data$FeatAcc)
 
-
-bscores <- c(0.7933333333333333,
-             0.82,
+bscores <- c(0.82,
              0.8933333333333333,
              0.9,
-             0.86)
-bvars <- c(0.3873557079022387,
-           0.03265986323710903,
+             0.86,
+             0.86,
+             0.82,
+             0.82)
+bvars <- c(0.03265986323710903,
            0.17587874611030554,
            0.16329931618554516,
-           0.25438378704451886)
+           0.25438378704451886,
+           0.25438378704451886,
+           0.03265986323710903,
+           0.33092463055975624)
 
 plot(data$FeatAcc, data$TuneAcc)
 summary(data)
+mean(bscores)
 mean(bvars)
 
-tree <- c(104, 96, 70, 74, 122)
-feat <- c(322, 390, 220, 234, 466)
+tree <- c(96, 70, 74, 122, 138/2, 142/2)
+feat <- c(390, 220, 234, 466, 179, 317)
 #plot(feat, tree)
 cor.test(feat, tree)
 
 feat/tree
 
+cor.test(data$NumFeat, data$NumTrees)
+data$NumFeat
+data$NumTrees
+filt <- select(data, c(NumFeat, NumTrees))
+filt400 <- filter(filt, NumFeat < 400)
+cor.test(filt400$NumFeat, filt400$NumTrees)
+plot(filtr$NumFeat, filtr$NumTrees)
