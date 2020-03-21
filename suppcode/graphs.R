@@ -128,4 +128,6 @@ data$NumTrees
 filt <- select(data, c(NumFeat, NumTrees))
 filt400 <- filter(filt, NumFeat < 400)
 cor.test(filt400$NumFeat, filt400$NumTrees)
-plot(filtr$NumFeat, filtr$NumTrees)
+plot(filt400$NumFeat, filt400$NumTrees)
+
+mean(filt400$NumFeat/filt400$NumTrees)
