@@ -131,3 +131,23 @@ cor.test(filt400$NumFeat, filt400$NumTrees)
 plot(filt400$NumFeat, filt400$NumTrees)
 
 mean(filt400$NumFeat/filt400$NumTrees)
+
+
+
+
+top3 <- read_csv("/home/alex/Desktop/ML/top3.csv", col_names = FALSE)
+
+top3 <- top3 %>% group_by(X1) %>% summarise(X2 = sum(X2))
+top3 <- arrange(top3, by_group=top3$X2)
+colnames(top3) <- c("gene", "val")
+ftop3 <- top3 %>% filter(val >= 262)
+ftop3$val <- as.integer(ftop3$val)
+facgene <- (factor(ftop3$gene, levels = ftop3$gene))
+
+ggplot(ftop3, aes(facgene, val/30, fill=gene)) +
+  geom_col() +
+  labs(x="Gene", y="Average relative importance") +
+  coord_flip() +
+  scale_fill_discrete(guide=FALSE) +
+  theme_minimal()
+
