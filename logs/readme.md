@@ -71,3 +71,23 @@ The resulting routes.csv file was then used to generate the graph.
 
 ![Routes graph](../example_figs/methods_1-30_all.png)
 
+
+
+The top 3 from all 30 tests were also extracted using:
+
+```bash
+for i in logs/test_{1..30}.log; 
+	do cat $i | grep -A 2 'TOP 3:' | sed -e 's/TOP 3:  //g' | sed -e 's/--//g' | sed -e 's/\s\+/,/g'; 
+done > top3.csv
+
+```
+
+The values from the csv were then used to create a graph of the average relative improtance for the top 10 genes.
+
+![top10](../example_figs/top3.png)
+
+
+
+
+
+
